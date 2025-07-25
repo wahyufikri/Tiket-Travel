@@ -48,9 +48,11 @@
                 <!-- Hidden inputs to pass all data -->
                 <input type="hidden" name="schedule_id" value="{{ $trip->id }}">
                 <input type="hidden" name="pax" value="{{ $pax }}">
-                @foreach ($selectedSeats as $seat)
+                @foreach ($selectedSeats as $index => $seat)
+                    <input type="hidden" name="passenger_names[]" value="{{ $passengerNames[$index] ?? '-' }}">
                     <input type="hidden" name="selected_seats[]" value="{{ $seat }}">
                 @endforeach
+
 
                 <label class="block mt-2">
                     <input type="checkbox" required> Saya telah membaca Syarat & Ketentuan

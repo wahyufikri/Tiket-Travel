@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderPassenger;
 use App\Models\Schedule;
 use App\Models\Seat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
@@ -37,6 +42,9 @@ class BookingController extends Controller
                 'is_passenger' => $request->has('is_passenger'),
                 'guest_checkout' => $request->has('guest_checkout'),
                 'passenger_names' => $request->passenger_names,
+                'customer_name' => $request->name,
+                'customer_email' => $request->email,
+                'customer_phone' => $request->phone,
             ],
             'schedule_id' => $request->schedule_id,
             'pax' => count($request->passenger_names),
@@ -54,7 +62,8 @@ class BookingController extends Controller
         $passengerNames = session('customer.passenger_names', []);
 
 
-        return view('homepage.public.select-seat', compact('trip', 'seats', 'pax','passengerNames'));
+
+        return view('homepage.public.select-seat', compact('trip', 'seats', 'pax', 'passengerNames'));
     }
 
     public function checkout(Request $request)
@@ -70,18 +79,75 @@ class BookingController extends Controller
             ->where('schedule_id', $trip->id)
             ->get();
 
-        return view('homepage.public.checkout', compact('trip', 'selectedSeats', 'pax', 'seats','passengerNames'));
-    }
-    public function processPayment(Request $request)
-{
-    // Validasi atau simpan order ke DB
-    // Misal:
-    // - Simpan ke tabel bookings
-    // - Kurangi kursi tersedia
-    // - Kirim email/invoice
-    // - Redirect ke halaman sukses
 
-    return redirect('/')->with('success', 'Pemesanan berhasil dikonfirmasi!');
+
+        return view('homepage.public.checkout', compact('trip', 'selectedSeats', 'pax', 'seats', 'passengerNames'));
+    }
+    public function process(Request $request)
+{
+    $request->validate([
+        'schedule_id' => 'required|exists:schedules,id',
+        'pax' => 'required|integer|min:1',
+        'selected_seats' => 'required|array',
+        'passenger_names' => 'required|array',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $schedule = Schedule::findOrFail($request->schedule_id);
+
+        // Simpan data customer (jika login bisa pakai Auth::id())
+        $customer = Customer::firstOrCreate(
+            ['email' => session('customer.customer_email')],
+            [
+                'name'  => session('customer.customer_name'),
+                'phone' => session('customer.customer_phone'),
+            ]
+        );
+
+        $price = $schedule->route->price;
+        $total = $price * $request->pax;
+
+        $order = Order::create([
+            'customer_id'    => $customer->id,
+            'schedule_id'    => $schedule->id,
+            'order_code'     => strtoupper(Str::random(10)),
+            'seat_quantity'  => $request->pax,
+            'total_price'    => $total,
+            'payment_status' => 'belum',
+            'order_status'   => 'menunggu',
+        ]);
+
+        foreach ($request->selected_seats as $index => $seat) {
+            OrderPassenger::create([
+                'order_id'    => $order->id,
+                'name'        => $request->passenger_names[$index] ?? '-',
+                'seat_number' => $seat,
+            ]);
+        }
+
+        DB::commit();
+
+        return redirect()->route('checkout.payment', ['order' => $order->id]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return back()->with('error', 'Gagal memproses pesanan: ' . $e->getMessage());
+    }
 }
 
+    public function cancelOrder($id)
+    {
+        $order = Order::findOrFail($id);
+
+        // Ubah status ke batal
+        $order->update(['order_status' => 'batal']);
+
+        // Hapus data penumpangnya
+        $order->passengers()->delete();
+
+        return redirect()->back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
 }

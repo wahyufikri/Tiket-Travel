@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardAdminController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ManajemenAdminController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\PublicScheduleController;
 use App\Http\Controllers\RoleController;
@@ -46,6 +47,15 @@ Route::resource('/jadwal', ScheduleController::class)->middleware('auth');
 
 Route::resource('/auto_schedule', AutoScheduleController::class);
 
+Route::resource('/pemesanan', OrderController::class);
+
+Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment');
+Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process');
+
+Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show');
+
+
+
 
 
 Route::get('/profil', [ProfilController::class, 'index'])->middleware('auth');
@@ -55,8 +65,8 @@ Route::get('/cari-jadwal', [PublicScheduleController::class, 'search'])->name('p
 Route::get('/booking', [BookingController::class, 'book'])->name('public.booking');
 Route::get('/select-seat/{schedule_id}', [BookingController::class, 'showSeatSelection'])->name('public.seatSelection');
 Route::post('/booking/seat-selection', [BookingController::class, 'selectSeat'])->name('public.processBooking');
-Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show');
-Route::post('/checkout/process', [BookingController::class, 'processPayment'])->name('checkout.process');
+
+
 
 
 
