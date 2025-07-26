@@ -4,7 +4,7 @@
     <div class="container mx-auto p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Manajemen Order</h2>
-            <a href="" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <a href="/pemesanan/create" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                 + Order
             </a>
         </div>
@@ -121,7 +121,7 @@
                                 @endswitch
                             </td>
                             <td class="px-4 py-2 flex space-x-2">
-                                <a href="" class="text-yellow-500 hover:text-yellow-700">
+                                <a href="/pemesanan/{{ $order->id }}/edit" class="text-yellow-500 hover:text-yellow-700">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="/pemesanan/{{ $order->id }}" method="POST">
