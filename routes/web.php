@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\AutoScheduleController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CustomerLoginController;
+use App\Http\Controllers\CustomerProfilController;
+use App\Http\Controllers\CustomerRegisterController;
 use App\Http\Controllers\DashboardAdminController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\LoginController;
@@ -30,6 +33,14 @@ Route::get('/dashboard', [DashboardAdminController::class, 'Dashboard'])->middle
 Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate']);
 Route::post('/logout', [LoginController::class, 'logout']);
+
+Route::post('/customer/login', [CustomerLoginController::class, 'login'])->name('customer.login');
+Route::post('/customer/logout', [CustomerLoginController::class, 'logout'])->name('customer.logout');
+Route::post('/customer/register', [CustomerRegisterController::class, 'register'])->name('customer.register');
+
+
+
+
 
 
 
@@ -64,7 +75,7 @@ Route::get('/cari-jadwal', [PublicScheduleController::class, 'search'])->name('p
 
 Route::get('/booking', [BookingController::class, 'book'])->name('public.booking');
 Route::get('/select-seat/{schedule_id}', [BookingController::class, 'showSeatSelection'])->name('public.seatSelection');
-Route::post('/booking/seat-selection', [BookingController::class, 'selectSeat'])->name('public.processBooking');
+Route::post('/booking/seat-selection', [BookingController::class, 'selectSeat'])->name('public.processBooking')->middleware('auth:customer');
 
 
 
@@ -77,4 +88,14 @@ Route::post('/booking/seat-selection', [BookingController::class, 'selectSeat'])
 
 
 Route::post('/profil/update-password', [ProfilController::class, 'updatePassword'])->name('profil.updatePassword');
+
+
+
+
+Route::middleware(['auth:customer'])->group(function () {
+    Route::get('/profile', [CustomerProfilController::class, 'index'])->name('customer.profile');
+    Route::get('/profile/edit', [CustomerProfilController::class, 'edit'])->name('customer.editProfile');
+    Route::post('/profile/update', [CustomerProfilController::class, 'update'])->name('customer.updateProfile');
+    Route::post('/logout', [CustomerProfilController::class, 'logout'])->name('customer.logout');
+});
 

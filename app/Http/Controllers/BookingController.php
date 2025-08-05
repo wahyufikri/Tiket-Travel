@@ -8,6 +8,7 @@ use App\Models\OrderPassenger;
 use App\Models\Schedule;
 use App\Models\Seat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -26,6 +27,9 @@ class BookingController extends Controller
 
     public function selectSeat(Request $request)
     {
+        if (!Auth::guard('customer')->check()) {
+        return redirect()->route('customer.login'); // Halaman login customer
+    }
         $validated = $request->validate([
             'name' => 'required',
             'phone' => 'required',

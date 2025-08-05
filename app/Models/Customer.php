@@ -2,12 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class Customer extends Authenticatable
 {
-    protected $fillable = ['name', 'email', 'phone'];
+    use Notifiable;
+    protected $fillable = ['name', 'email', 'phone','password'];
 
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     // Relasi ke daftar pesanan
     public function orders()
     {
