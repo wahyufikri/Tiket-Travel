@@ -73,7 +73,7 @@ class GenerateDailySchedule extends Command
 
                     for ($i = 1; $i <= $count; $i++) {
                         Seat::create([
-                            'schedule_id' => $schedule->id,
+                            'vehicle_id' => $vehicle->id,
                             'seat_number' => $row . $i,
                             'is_booked' => false,
                         ]);

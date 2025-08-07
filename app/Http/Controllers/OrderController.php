@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Schedule;
+use App\Models\Seat;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use PDF;
 
 class OrderController extends Controller
 {
@@ -123,9 +128,63 @@ public function update(Request $request, $id)
 
 
 public function destroy($id)
-    {
-        Order::destroy($id);
-        return redirect()->route('pemesanan.index')->with('success', 'Auto Schedule dihapus.');
+{
+    DB::beginTransaction();
+
+    try {
+        // Ambil data order beserta penumpang dan jadwal
+        $order = Order::with('passengers', 'schedule')->findOrFail($id);
+
+        // Hitung jumlah kursi yang dipesan
+        $seatsToRestore = $order->passengers->count();
+
+        // Kembalikan status kursi yang sudah dipesan
+        foreach ($order->passengers as $passenger) {
+            Seat::where('vehicle_id', $order->schedule->vehicle_id)
+                ->where('seat_number', $passenger->seat_number)
+                ->update(['is_booked' => 0]);
+        }
+
+        // Tambahkan kembali available_seats
+        $order->schedule->increment('available_seats', $seatsToRestore);
+
+        // Hapus order (beserta penumpang jika pakai cascade)
+        $order->delete();
+
+        DB::commit();
+
+        return redirect()->route('pemesanan.index')->with('success', 'Pesanan berhasil dihapus dan kursi dikembalikan.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->route('pemesanan.index')->with('error', 'Gagal menghapus pesanan: ' . $e->getMessage());
     }
+}
+
+
+
+
+
+    public function showTicket(Order $order)
+{
+
+
+    $order->load('passengers');
+    return view('homepage.public.show_ticket', compact('order'));
+}
+
+public function downloadTicket(Order $order)
+{
+   
+
+    $order->load('passengers');
+    $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order'))
+        ->setPaper('A4', 'portrait');
+
+    return $pdf->download('tiket_' . $order->id . '.pdf');
+}
+
+
+
 
 }

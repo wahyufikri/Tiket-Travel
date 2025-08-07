@@ -6,6 +6,7 @@ use App\Models\Driver;
 use App\Models\Route;
 use App\Models\Schedule;
 use App\Models\Seat;
+use App\Models\Stop;
 use App\Models\Vehicle;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
@@ -66,7 +67,15 @@ class ScheduleController extends Controller
         $routes = Route::all();
         $vehicles = Vehicle::all();
         $drivers = Driver::all();
-        return view('dashboard.schedules.create', compact('routes', 'vehicles', 'drivers'));
+        $routeStopsGrouped = Stop::all()->groupBy('route_id')->map(function ($stops) {
+        return $stops->map(function ($stop) {
+            return [
+                'id' => $stop->id,
+                'stop_name' => $stop->stop_name,
+            ];
+        });
+    });
+        return view('dashboard.schedules.create', compact('routes', 'vehicles', 'drivers', 'routeStopsGrouped'));
     }
 
 
@@ -79,7 +88,7 @@ class ScheduleController extends Controller
         'driver_id' => 'required',
         'departure_date' => 'required|date',
         'departure_time' => 'required|date_format:H:i',
-        
+
     ]);
 
     // Gabungkan tanggal dan waktu keberangkatan

@@ -16,4 +16,16 @@ protected $casts = [
     'duration_minutes' => 'integer',
 ];
 
+public function stops()
+{
+    return $this->hasMany(Stop::class);
+}
+
+public function stopPrices()
+{
+    return $this->hasMany(StopPrice::class);
+}
+
+
+
 }

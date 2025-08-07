@@ -10,11 +10,15 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ManajemenAdminController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\PublicScheduleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\StopPriceController;
+use App\Http\Controllers\StopsController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,10 +64,39 @@ Route::resource('/auto_schedule', AutoScheduleController::class);
 
 Route::resource('/pemesanan', OrderController::class);
 
+
+Route::resource('/pembayaran', PaymentController::class);
+Route::resource('/stop', StopsController::class);
+Route::resource('/hargapertitik', StopPriceController::class);
+
+Route::prefix('keuangan')->name('keuangan.')->group(function () {
+    // CRUD Transaksi
+    Route::get('/', [TransactionController::class, 'index'])->name('index');
+    Route::get('/create', [TransactionController::class, 'create'])->name('create');
+    Route::post('/', [TransactionController::class, 'store'])->name('store');
+    Route::get('/{transaction}/edit', [TransactionController::class, 'edit'])->name('edit');
+    Route::put('/{transaction}', [TransactionController::class, 'update'])->name('update');
+    Route::delete('/{transaction}', [TransactionController::class, 'destroy'])->name('destroy');
+
+    // Kategori Transaksi
+    Route::post('/categories', [TransactionController::class, 'storeCategory'])->name('categories.store');
+    Route::delete('/categories/{id}', [TransactionController::class, 'destroyCategory'])->name('categories.destroy');
+
+    // Metode Pembayaran
+    Route::post('/payment-methods', [TransactionController::class, 'storePaymentMethod'])->name('payment-methods.store');
+    Route::delete('/payment-methods/{id}', [TransactionController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+});
+
+
+
+
+
+Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show');
+
 Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment');
 Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process');
 
-Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show');
+
 
 
 
@@ -98,4 +131,12 @@ Route::middleware(['auth:customer'])->group(function () {
     Route::post('/profile/update', [CustomerProfilController::class, 'update'])->name('customer.updateProfile');
     Route::post('/logout', [CustomerProfilController::class, 'logout'])->name('customer.logout');
 });
+
+
+Route::post('/checkout/simulate-payment', [PaymentController::class, 'simulate'])->name('checkout.simulate');
+Route::get('/checkout/success/{order}', [PaymentController::class, 'success'])->name('checkout.success');
+
+Route::get('/orders/{order}/ticket', [OrderController::class, 'showTicket'])->name('orders.showTicket');
+Route::get('/orders/{order}/download-ticket', [OrderController::class, 'downloadTicket'])->name('orders.downloadTicket');
+
 

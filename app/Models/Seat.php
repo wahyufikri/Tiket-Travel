@@ -9,7 +9,7 @@ class Seat extends Model
     protected $table = 'seats';
 
     protected $fillable = [
-        'schedule_id',
+        'vehicle_id',
         'seat_number',
         'is_booked',
     ];
@@ -20,5 +20,9 @@ class Seat extends Model
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
+    }
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 }

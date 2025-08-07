@@ -36,25 +36,55 @@
         </svg>
         Rute
     </a>
+    <a href="{{ url('/stop') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
+        <!-- Map Icon -->
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
+        </svg>
+        Rute Stop
+    </a>
 
-    <a href="{{ url('/jadwal') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Calendar Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"></path>
+    <!-- Jadwal Dropdown -->
+<div x-data="{ open: false }" class="transition-all">
+    <button @click="open = !open" class="w-full flex justify-between items-center py-2 px-4 rounded hover:bg-[#a83232] cursor-pointer">
+        <div class="flex items-center space-x-2">
+            <!-- Calendar Icon -->
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"></path>
+            </svg>
+            <span>Jadwal</span>
+        </div>
+        <!-- Panah Dropdown -->
+        <svg :class="{ 'rotate-90': open }" class="h-4 w-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
-        Jadwal
-    </a>
-    <a href="{{ url('/auto_schedule') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Calendar Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"></path>
-        </svg>
-        Jadwal Otomatis
-    </a>
+    </button>
+
+    <!-- Isi dropdown -->
+    <div x-show="open" x-transition x-cloak class="ml-4 mt-1 space-y-1 pl-2 border-l border-[#c34f4f]">
+        <a href="{{ url('/jadwal') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"></path>
+            </svg>
+            <span>Jadwal Manual</span>
+        </a>
+        <a href="{{ url('/auto_schedule') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"></path>
+            </svg>
+            <span>Jadwal Otomatis</span>
+        </a>
+    </div>
+</div>
+
 
     <a href="{{ url('/pemesanan') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
         <!-- Clipboard Icon -->
@@ -75,6 +105,15 @@
         </svg>
         Pembayaran
     </a>
+<a href="{{ url('/keuangan') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
+    <!-- Money Icon -->
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0V7a2 2 0 012-2h2a2 2 0 012 2v2m-4 0h-4m4 0v6m0 0h4m-4 0h-4m-6 0h4m-4 0H5m4 0v-6" />
+    </svg>
+    Keuangan
+</a>
 
     <a href="{{ url('/notifikasi') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
         <!-- Bell Icon -->
@@ -85,6 +124,7 @@
         </svg>
         Notifikasi
     </a>
+
     <div x-data="{ open: false }" class="transition-all">
     <button @click="open = !open" class="w-full flex justify-between items-center py-2 px-4 rounded hover:bg-[#a83232] cursor-pointer">
         <div class="flex items-center space-x-2">

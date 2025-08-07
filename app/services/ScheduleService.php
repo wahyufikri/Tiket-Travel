@@ -35,11 +35,11 @@ class ScheduleService
                 ->orderByDesc('departure_time')
                 ->first();
 
-            if ($lastDriverSchedule && optional($lastDriverSchedule->route)->destination !== $route->origin) {
-                throw ValidationException::withMessages([
-                    'driver_id' => 'Sopir tidak berada di titik asal.'
-                ]);
-            }
+            // if ($lastDriverSchedule && optional($lastDriverSchedule->route)->destination !== $route->origin) {
+            //     throw ValidationException::withMessages([
+            //         'driver_id' => 'Sopir tidak berada di titik asal.'
+            //     ]);
+            // }
 
             // 2. Validasi lokasi terakhir kendaraan
             $lastVehicleSchedule = Schedule::where('vehicle_id', $vehicle->id)
@@ -88,7 +88,7 @@ class ScheduleService
 
                 for ($i = 1; $i <= $count; $i++) {
                     Seat::create([
-                        'schedule_id' => $schedule->id,
+                        'vehicle_id' => $vehicle->id,
                         'seat_number' => $row . $i,
                         'is_booked' => false,
                     ]);

@@ -59,6 +59,7 @@
                     <tr>
                         <th class="px-4 py-2">No</th>
                         <th class="px-4 py-2">Kode Order</th>
+                        <th class="px-4 py-2">Nama Kursi</th>
                         <th class="px-4 py-2">Jumlah Kursi</th>
                         <th class="px-4 py-2">Total</th>
                         <th class="px-4 py-2">Status Order</th>
@@ -71,6 +72,11 @@
                         <tr class="border-b hover:bg-gray-50">
                             <td class="px-4 py-2">{{ $index + $orders->firstItem() }}</td>
                             <td class="px-4 py-2">{{ $order->order_code }}</td>
+                            <td class="px-4 py-2">
+                                @foreach ($order->passengers as $p)
+                                    {{ $p->seat_number }}{{ !$loop->last ? ', ' : '' }}
+                                @endforeach
+                            </td>
                             <td class="px-4 py-2">{{ $order->seat_quantity }}</td>
                             <td class="px-4 py-2">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
                             <td>@switch($order->order_status)

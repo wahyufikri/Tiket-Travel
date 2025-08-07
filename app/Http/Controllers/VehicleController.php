@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Models\Seat;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,22 +92,41 @@ class VehicleController extends Controller
     }
 
     // Baru lanjut simpan jika valid
-    DB::transaction(function () use ($validated, $request) {
-        $vehicle = Vehicle::create([
-            'vehicle_name' => $validated['vehicle_name'],
-            'license_plate' => $validated['license_plate'],
-            'type' => $validated['type'],
-            'color' => $validated['color'],
-            'capacity' => $validated['capacity'],
-            'year' => $validated['year'],
-            'status' => $validated['status'],
-            'seat_configuration' => $validated['seat_configuration'] ?? null,
-        ]);
+    DB::transaction(function () use ($validated, $request, &$vehicle) {
+    $vehicle = Vehicle::create([
+        'vehicle_name' => $validated['vehicle_name'],
+        'license_plate' => $validated['license_plate'],
+        'type' => $validated['type'],
+        'color' => $validated['color'],
+        'capacity' => $validated['capacity'],
+        'year' => $validated['year'],
+        'status' => $validated['status'],
+        'seat_configuration' => $validated['seat_configuration'] ?? null,
+    ]);
 
-        if ($request->has('drivers')) {
-            $vehicle->drivers()->attach($validated['drivers']);
+    if ($request->has('drivers')) {
+        $vehicle->drivers()->attach($validated['drivers']);
+    }
+
+    // ✅ Tambahkan logic generate seats
+    if (!empty($validated['seat_configuration'])) {
+        $rows = explode(',', $validated['seat_configuration']);
+        foreach ($rows as $row) {
+            if (strpos($row, '=') !== false) {
+                [$rowLabel, $count] = explode('=', $row);
+                $rowLabel = trim($rowLabel);
+                $count = (int) trim($count);
+                for ($i = 1; $i <= $count; $i++) {
+                    Seat::create([
+                        'vehicle_id' => $vehicle->id,
+                        'seat_number' => $rowLabel . $i, // Contoh: A1, A2
+                        'is_booked' => false,
+                    ]);
+                }
+            }
         }
-    });
+    }
+});
 
     return redirect()->route('kendaraan.index')->with('success', 'Kendaraan berhasil ditambahkan.');
 }

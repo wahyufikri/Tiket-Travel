@@ -47,4 +47,11 @@ class Order extends Model
     {
         return $query->where('payment_status', 'lunas');
     }
+
+    public function payment()
+{
+    return $this->hasOne(Payment::class);
 }
+
+}
+

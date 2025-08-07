@@ -18,6 +18,10 @@ class Schedule extends Model
         'status',
         'arrival_time' // Tambahkan ini jika Anda ingin menyimpan waktu kedatangan,
     ];
+    protected $casts = [
+    'departure_time' => 'datetime',
+];
+
     // Schedule.php
     public function route()
     {

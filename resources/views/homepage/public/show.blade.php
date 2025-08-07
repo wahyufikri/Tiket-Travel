@@ -70,50 +70,71 @@
             <p class="text-sm mb-4">Virtual Account</p>
 
             <div class="space-y-3">
-                <div class="border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer">
-                    <div>
-                        <p class="font-semibold">BNI VA</p>
-                        <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
-                    </div>
-                    <img src="https://upload.wikimedia.org/wikipedia/id/thumb/0/0d/Bank_BNI_logo.svg/1200px-Bank_BNI_logo.svg.png"
-                        alt="BNI" class="w-12">
-                </div>
+                {{-- BNI VA --}}
+                <form action="{{ route('checkout.simulate') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="order_id" value="{{ $order->id }}">
+                    <input type="hidden" name="payment_method" value="BNI VA">
+                    <button type="submit"
+                        class="w-full border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer text-left">
+                        <div>
+                            <p class="font-semibold">BNI VA</p>
+                            <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/id/thumb/0/0d/Bank_BNI_logo.svg/1200px-Bank_BNI_logo.svg.png"
+                            alt="BNI" class="w-12">
+                    </button>
+                </form>
 
-                <div class="border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer">
-                    <div>
-                        <p class="font-semibold">BRIVA</p>
-                        <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
-                    </div>
-                    <img src="https://upload.wikimedia.org/wikipedia/id/2/23/Bank_Rakyat_Indonesia.png"
-                        alt="BRI" class="w-12">
-                </div>
+                {{-- BRIVA --}}
+                <form action="{{ route('checkout.simulate') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="order_id" value="{{ $order->id }}">
+                    <input type="hidden" name="payment_method" value="BRIVA">
+                    <button type="submit"
+                        class="w-full border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer text-left">
+                        <div>
+                            <p class="font-semibold">BRIVA</p>
+                            <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/id/2/23/Bank_Rakyat_Indonesia.png" alt="BRI"
+                            class="w-12">
+                    </button>
+                </form>
 
-                <div class="border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer">
-                    <div>
-                        <p class="font-semibold">MANDIRI VA</p>
-                        <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
-                    </div>
-                    <img src="https://upload.wikimedia.org/wikipedia/id/thumb/2/2e/Bank_Mandiri_logo.svg/1200px-Bank_Mandiri_logo.svg.png"
-                        alt="Mandiri" class="w-12">
-                </div>
+                {{-- Mandiri VA --}}
+                <form action="{{ route('checkout.simulate') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="order_id" value="{{ $order->id }}">
+                    <input type="hidden" name="payment_method" value="MANDIRI VA">
+                    <button type="submit"
+                        class="w-full border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer text-left">
+                        <div>
+                            <p class="font-semibold">MANDIRI VA</p>
+                            <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/id/thumb/2/2e/Bank_Mandiri_logo.svg/1200px-Bank_Mandiri_logo.svg.png"
+                            alt="Mandiri" class="w-12">
+                    </button>
+                </form>
 
-                <div class="border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer">
-                    <div>
-                        <p class="font-semibold">PERMATA VA</p>
-                        <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
-                    </div>
-                    <img src="https://seeklogo.com/images/P/permata-bank-logo-001F576D47-seeklogo.com.png"
-                        alt="Permata" class="w-12">
-                </div>
+                {{-- Permata VA --}}
+                <form action="{{ route('checkout.simulate') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="order_id" value="{{ $order->id }}">
+                    <input type="hidden" name="payment_method" value="PERMATA VA">
+                    <button type="submit"
+                        class="w-full border p-3 rounded flex justify-between items-center hover:border-red-600 cursor-pointer text-left">
+                        <div>
+                            <p class="font-semibold">PERMATA VA</p>
+                            <p class="text-xs text-gray-500">Minimal transaksi Rp. 50.000</p>
+                        </div>
+                        <img src="https://seeklogo.com/images/P/permata-bank-logo-001F576D47-seeklogo.com.png"
+                            alt="Permata" class="w-12">
+                    </button>
+                </form>
             </div>
-
-            <form action="" method="POST" class="mt-4">
-                @csrf
-                <button type="submit"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
-                    Lanjutkan
-                </button>
-            </form>
         </div>
+
     </div>
 @endsection

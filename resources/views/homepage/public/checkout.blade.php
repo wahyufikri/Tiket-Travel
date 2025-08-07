@@ -3,11 +3,13 @@
 @section('title', 'Checkout')
 
 @section('content')
+
     <div class="max-w-4xl mx-auto py-8">
         <h2 class="text-2xl font-bold mb-4">Detail Pesanan</h2>
 
         <div class="bg-white p-6 rounded shadow border">
-            <p class="text-red-600 font-semibold">{{ $trip->origin }} → {{ $trip->destination }}</p>
+            <p class="text-red-600 font-semibold">{{ $origin }} → {{ $destination }}</p>
+
             <p class="text-sm">{{ \Carbon\Carbon::parse($trip->departure_date)->isoFormat('dddd, D MMMM Y') }}</p>
             <p class="text-sm">{{ $trip->departure_time }} WIB</p>
 
@@ -36,16 +38,24 @@
             <hr class="my-4">
 
             <div class="text-sm">
-                <p>Harga Tiket: Rp. {{ number_format($trip->route->price) }}</p>
-                <p>Jumlah Penumpang: {{ $pax }}</p>
-                <p class="font-semibold">Total Harga: <span class="text-red-600">Rp.
-                        {{ number_format($trip->route->price * $pax) }}</span></p>
+                <p>Harga Tiket: Rp. {{ number_format($price) }}</p>
+<p>Jumlah Penumpang: {{ $pax }}</p>
+<p class="font-semibold">Total Harga:
+    <span class="text-red-600">Rp. {{ number_format($price * $pax) }}</span>
+</p>
+
             </div>
 
             <form action="{{ route('checkout.process') }}" method="POST" class="mt-4">
 
                 @csrf
                 <!-- Hidden inputs to pass all data -->
+
+
+                <input type="hidden" name="origin" value="{{ $origin }}">
+<input type="hidden" name="destination" value="{{ $destination }}">
+<input type="hidden" name="price" value="{{ $price }}">
+
                 <input type="hidden" name="schedule_id" value="{{ $trip->id }}">
                 <input type="hidden" name="pax" value="{{ $pax }}">
                 @foreach ($selectedSeats as $index => $seat)

@@ -14,7 +14,7 @@
                 <label for="route" class="block font-semibold">Rute <span class="text-red-500">*</span></label>
                 <select name="route_id" id="route"
                     class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500 @error('route_id') border-red-500 @enderror"
-                    required x-model="selectedRoute" @change="updateArrivalTime()">
+                    required x-model="selectedRoute" @change="updateArrivalTime(); updateStops()">
                     <option value="">-- Pilih Rute --</option>
                     @foreach ($routes as $route)
                         <option value="{{ $route->id }}" {{ old('route_id') == $route->id ? 'selected' : '' }}>
@@ -119,7 +119,7 @@
             </div>
 
             <!-- Status -->
-            
+
 
             <!-- Tombol -->
             <div class="flex justify-end space-x-2 mt-6">
@@ -137,24 +137,29 @@
                 departureTime: '',
                 arrivalTime: '',
                 selectedRoute: '',
-                routeDurations: @json($routes->pluck('duration_minutes', 'id')), // dalam menit
+                pickupStop: '',
+                dropoffStop: '',
+                availableStops: [],
+                routeDurations: @json($routes->pluck('duration_minutes', 'id')),
+                routeStops: @json($routeStopsGrouped), // dari controller: groupBy route_id
 
                 updateArrivalTime() {
                     if (!this.departureTime || !this.selectedRoute) {
                         this.arrivalTime = '--:--';
                         return;
                     }
-
                     const duration = parseInt(this.routeDurations[this.selectedRoute] || 0);
                     const [hours, minutes] = this.departureTime.split(':').map(Number);
-
                     const waktuBerangkat = new Date();
                     waktuBerangkat.setHours(hours);
                     waktuBerangkat.setMinutes(minutes + duration);
-
                     const jam = waktuBerangkat.getHours().toString().padStart(2, '0');
                     const menit = waktuBerangkat.getMinutes().toString().padStart(2, '0');
                     this.arrivalTime = `${jam}:${menit}`;
+                },
+
+                updateStops() {
+                    this.availableStops = this.routeStops[this.selectedRoute] || [];
                 }
             }
         }
