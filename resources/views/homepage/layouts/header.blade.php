@@ -1,8 +1,9 @@
-<header class="bg-red-700 text-white shadow">
+<header class="bg-red-700 text-white shadow"
+        x-data="{ open: false, showAuthModal: false, activeTab: 'login' }">
     <div class="max-w-7xl mx-auto flex items-center justify-between p-4">
         <a href="/" class="text-2xl font-bold">AWR<span class="font-light">Travel</span></a>
 
-        <nav x-data="{ open: false }" class="relative flex items-center space-x-4">
+        <nav class="relative flex items-center space-x-4">
             {{-- Menu Utama --}}
             <div class="relative">
                 <button @click="open = !open" class="md:hidden">
@@ -42,10 +43,57 @@
                     </div>
                 </div>
             @else
-                {{-- Jika belum login, tampilkan tombol login --}}
-                <a href="{{ route('customer.login') }}"
-                   class="bg-white text-red-700 px-4 py-2 rounded hover:bg-gray-200">Login</a>
+                {{-- Jika belum login, munculkan modal login --}}
+                <button @click="showAuthModal = true; activeTab = 'login'"
+                        class="bg-white text-red-700 px-4 py-2 rounded hover:bg-gray-200">
+                    Login
+                </button>
             @endauth
         </nav>
+    </div>
+
+    {{-- Modal Login/Register --}}
+    <div x-show="showAuthModal" x-cloak
+         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <div class="flex justify-between mb-4 border-b pb-2">
+                <button @click="activeTab = 'login'"
+                        :class="activeTab === 'login' ? 'font-bold text-red-600' : 'text-gray-500'">Login</button>
+                <button @click="activeTab = 'register'"
+                        :class="activeTab === 'register' ? 'font-bold text-red-600' : 'text-gray-500'">Register</button>
+            </div>
+
+            {{-- Login Form --}}
+            <div x-show="activeTab === 'login'">
+                <form method="POST" action="{{ route('customer.login') }}">
+                    @csrf
+                    <input type="email" name="email" placeholder="Email" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <input type="password" name="password" placeholder="Password" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <button type="submit"
+                            class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">Login</button>
+                </form>
+            </div>
+
+            {{-- Register Form --}}
+            <div x-show="activeTab === 'register'">
+                <form method="POST" action="{{ route('customer.register') }}">
+                    @csrf
+                    <input type="text" name="name" placeholder="Nama Lengkap" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <input type="text" name="phone" placeholder="Nomor Telepon" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <input type="email" name="email" placeholder="Email" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <input type="password" name="password" placeholder="Password" required
+                           class="w-full border px-3 py-2 rounded mb-3 text-black">
+                    <button type="submit"
+                            class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Register</button>
+                </form>
+            </div>
+
+            <button @click="showAuthModal = false" class="mt-4 text-gray-600 hover:underline text-sm">Tutup</button>
+        </div>
     </div>
 </header>

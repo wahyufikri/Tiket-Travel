@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Route;
 use App\Models\Schedule;
 use App\Models\Stop;
@@ -18,11 +19,12 @@ class PublicScheduleController extends Controller
     // Ambil data asal yang unik berdasarkan kombinasi nama dan route
     $origins = $routeStops->unique(fn ($item) => $item->route_id . '-' . $item->stop_name);
     $destinations = $routeStops->unique(fn ($item) => $item->route_id . '-' . $item->stop_name);
+    $orders = Order::latest()->get();
 
     // Kosongkan schedules awal, nanti akan terisi saat pencarian
     $schedules = collect();
 
-    return view('homepage.public.home', compact('routeStops', 'origins', 'schedules','destinations'));
+    return view('homepage.public.home', compact('routeStops', 'origins', 'schedules','destinations','orders'));
 }
 
 

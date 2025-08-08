@@ -67,6 +67,9 @@ Route::resource('/pemesanan', OrderController::class);
 
 Route::resource('/pembayaran', PaymentController::class);
 Route::resource('/stop', StopsController::class);
+// web.php
+Route::get('/stop/{stop}/edit', [StopsController::class, 'edit'])->name('stop.edit');
+
 Route::resource('/hargapertitik', StopPriceController::class);
 
 Route::prefix('keuangan')->name('keuangan.')->group(function () {
@@ -91,10 +94,10 @@ Route::prefix('keuangan')->name('keuangan.')->group(function () {
 
 
 
-Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show');
-
-Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment');
-Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process');
+// web.php
+Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show'); // proses dari pilih kursi ke halaman checkout
+Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment'); // halaman pembayaran
+Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process'); // proses final pembayaran
 
 
 

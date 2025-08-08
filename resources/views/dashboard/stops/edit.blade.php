@@ -4,7 +4,7 @@
 <div class="container mx-auto p-6">
     <h2 class="text-2xl font-bold mb-4">Edit Pemberhentian Rute</h2>
 
-    <form action="{{ route('route-stops.update', $routeStop->id) }}" method="POST" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+    <form action="/stop/{{ $routeStop->id }}" method="POST" class="bg-white p-6 rounded-lg shadow-md space-y-4">
         @method('PUT')
         @csrf
 
@@ -37,9 +37,19 @@
                 value="{{ old('stop_name', $routeStop->stop_name) }}" required>
         </div>
 
+        <!-- Waktu Tempuh dari Pemberhentian Sebelumnya -->
+        <div>
+            <label for="travel_minutes" class="block font-semibold">
+                Waktu Tempuh dari Pemberhentian Sebelumnya (menit) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="travel_minutes" id="travel_minutes" min="0"
+                class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500"
+                value="{{ old('travel_minutes', $routeStop->travel_minutes) }}" placeholder="Contoh: 45" required>
+        </div>
+
         <!-- Tombol -->
         <div class="flex justify-end space-x-2 mt-6">
-            <a href="{{ route('route-stops.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Batal</a>
+            <a href="{{ route('stop.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Batal</a>
             <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Update</button>
         </div>
     </form>

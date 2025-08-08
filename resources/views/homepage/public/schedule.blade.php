@@ -10,32 +10,33 @@
             <form action="{{ route('public.schedule') }}" method="GET" x-data="{ selectedOrigin: '{{ request('depart') }}' }" class="space-y-4">
 
                 {{-- Dari --}}
-<div>
-    <label for="depart" class="block text-sm font-medium">Dari</label>
-    <select name="depart" id="depart" x-model="selectedOrigin" class="w-full border rounded px-3 py-2" required>
-        <option value="" disabled {{ !request('depart') ? 'selected' : '' }}>Pilih asal</option>
-        @foreach ($stops as $loc)
-            <option value="{{ $loc->stop_name }}"
-                {{ request('depart') == $loc->stop_name ? 'selected' : '' }}>
-                {{ $loc->stop_name }}
-            </option>
-        @endforeach
-    </select>
-</div>
+                <div>
+                    <label for="depart" class="block text-sm font-medium">Dari</label>
+                    <select name="depart" id="depart" x-model="selectedOrigin" class="w-full border rounded px-3 py-2"
+                        required>
+                        <option value="" disabled {{ !request('depart') ? 'selected' : '' }}>Pilih asal</option>
+                        @foreach ($stops as $loc)
+                            <option value="{{ $loc->stop_name }}"
+                                {{ request('depart') == $loc->stop_name ? 'selected' : '' }}>
+                                {{ $loc->stop_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-{{-- Ke --}}
-<div>
-    <label for="arrival" class="block text-sm font-medium">Ke</label>
-    <select name="arrival" id="arrival" class="w-full border rounded px-3 py-2" required>
-        <option value="" disabled {{ !request('arrival') ? 'selected' : '' }}>Pilih tujuan</option>
-        @foreach ($stops as $loc)
-            <option value="{{ $loc->stop_name }}"
-                {{ request('arrival') == $loc->stop_name ? 'selected' : '' }}>
-                {{ $loc->stop_name }}
-            </option>
-        @endforeach
-    </select>
-</div>
+                {{-- Ke --}}
+                <div>
+                    <label for="arrival" class="block text-sm font-medium">Ke</label>
+                    <select name="arrival" id="arrival" class="w-full border rounded px-3 py-2" required>
+                        <option value="" disabled {{ !request('arrival') ? 'selected' : '' }}>Pilih tujuan</option>
+                        @foreach ($stops as $loc)
+                            <option value="{{ $loc->stop_name }}"
+                                {{ request('arrival') == $loc->stop_name ? 'selected' : '' }}>
+                                {{ $loc->stop_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
 
 
@@ -97,8 +98,73 @@
                                     →
                                     {{ $destinationStop->stop_name ?? 'Tujuan Tidak Diketahui' }}
                                 </h4>
-                                <p>{{ $item->departure_date }} | {{ $item->departure_time }}</p>
-                                <p>{{ $item->available_seats }} Kursi Tersedia</p>
+                                @php
+                                    $departureSegment = null;
+                                    $arrivalSegment = null;
+
+                                    if (
+                                        $originStop &&
+                                        $destinationStop &&
+                                        isset($originStop->travel_minutes) &&
+                                        isset($destinationStop->travel_minutes)
+                                    ) {
+                                        // Jam berangkat segmen
+                                        $departureSegment = \Carbon\Carbon::parse($item->departure_time)->addMinutes(
+                                            $originStop->travel_minutes,
+                                        );
+
+                                        // Jam tiba segmen
+                                        $arrivalSegment = \Carbon\Carbon::parse($item->departure_time)->addMinutes(
+                                            $destinationStop->travel_minutes,
+                                        );
+                                    }
+                                @endphp
+
+                                @if ($departureSegment && $arrivalSegment)
+                                    <p>{{ $item->departure_date }} | {{ $departureSegment->format('H:i') }} -
+                                        {{ $arrivalSegment->format('H:i') }}</p>
+                                @endif
+
+
+
+
+
+
+
+                                @php
+                                    $originStopModel = $item->route->stops->firstWhere('stop_name', request('depart'));
+                                    $destinationStopModel = $item->route->stops->firstWhere(
+                                        'stop_name',
+                                        request('arrival'),
+                                    );
+
+                                    // Hitung jumlah kursi kendaraan
+                                    $totalSeats = \App\Models\Seat::where('vehicle_id', $item->vehicle_id)->count();
+
+                                    // Hitung kursi yang sudah terpakai di segmen yang overlap
+                                    $bookedSeats = \App\Models\Booking::join(
+                                        'route_stops as rs_from',
+                                        'bookings.from_stop_id',
+                                        '=',
+                                        'rs_from.id',
+                                    )
+                                        ->join('route_stops as rs_to', 'bookings.to_stop_id', '=', 'rs_to.id')
+                                        ->where('bookings.schedule_id', $item->id)
+                                        ->where('rs_from.route_id', $item->route_id)
+                                        ->where('rs_to.route_id', $item->route_id)
+                                        ->where(function ($query) use ($originStopModel, $destinationStopModel) {
+                                            $query
+                                                ->where('rs_from.stop_order', '<', $destinationStopModel->stop_order)
+                                                ->where('rs_to.stop_order', '>', $originStopModel->stop_order);
+                                        })
+                                        ->distinct('bookings.seat_id')
+                                        ->count('bookings.seat_id');
+
+                                    $availableSeats = $totalSeats - $bookedSeats;
+                                @endphp
+
+                                <p>{{ $availableSeats }} Kursi Tersedia</p>
+
                                 @php
                                     $routeId = $item->route_id;
                                     $originStopModel = $item->route->stops->firstWhere('stop_name', request('depart'));
@@ -131,16 +197,16 @@
 
                             </div>
                             <a href="{{ route('public.booking', [
-    'schedule_id' => $item->id,
-    'pax' => request('pax'),
-    'date' => request('date'),
-    'price' => $customPrice ?? $item->route->price,
-    'origin' => request('depart'),
-    'destination' => request('arrival'),
-]) }}"
-   class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-    Pilih
-</a>
+                                'schedule_id' => $item->id,
+                                'pax' => request('pax'),
+                                'date' => request('date'),
+                                'price' => $customPrice ?? $item->route->price,
+                                'origin' => request('depart'),
+                                'destination' => request('arrival'),
+                            ]) }}"
+                                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                Pilih
+                            </a>
 
                         </div>
                     </div>

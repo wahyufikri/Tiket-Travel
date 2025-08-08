@@ -49,9 +49,15 @@
                     value="{{ old('stop_name') }}" required>
             </div>
 
-            <!-- Harga dari Sebelumnya -->
-            
-
+            <!-- Waktu Tempuh dari Pemberhentian Sebelumnya -->
+            <div>
+                <label for="travel_minutes" class="block font-semibold">
+                    Waktu Tempuh dari Pemberhentian Sebelumnya (menit) <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="travel_minutes" id="travel_minutes" min="0"
+                    class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    value="{{ old('travel_minutes') }}" placeholder="Contoh: 45" required>
+            </div>
 
             <!-- Tombol -->
             <div class="flex justify-end space-x-2 mt-6">

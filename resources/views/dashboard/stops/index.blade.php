@@ -58,56 +58,60 @@
             </div>
 
             {{-- Tabel Pemberhentian Rute --}}
-            <div class="w-full lg:w-1/2">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">Daftar Pemberhentian Rute</h3>
-                    <a href="{{ route('stop.create') }}"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Tambah Pemberhentian</a>
-                </div>
-                <div class="bg-white shadow rounded-lg overflow-x-auto">
-                    <table class="w-full border-collapse">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-2 border">No</th>
-                                <th class="px-4 py-2 border">Rute</th>
-                                <th class="px-4 py-2 border">Urutan</th>
-                                <th class="px-4 py-2 border">Nama Pemberhentian</th>
-                                <th class="px-4 py-2 border">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($routeStops as $stop)
-                                <tr>
-                                    <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
-                                    <td class="px-4 py-2 border">{{ $stop->route->origin }} -
-                                        {{ $stop->route->destination }}</td>
-                                    <td class="px-4 py-2 border">{{ $stop->stop_order }}</td>
-                                    <td class="px-4 py-2 border">{{ $stop->stop_name }}</td>
+            {{-- Tabel Pemberhentian Rute --}}
+<div class="w-full lg:w-1/2">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Daftar Pemberhentian Rute</h3>
+        <a href="{{ route('stop.create') }}"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Tambah Pemberhentian</a>
+    </div>
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="w-full border-collapse">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-4 py-2 border">No</th>
+                    <th class="px-4 py-2 border">Rute</th>
+                    <th class="px-4 py-2 border">Urutan</th>
+                    <th class="px-4 py-2 border">Nama Pemberhentian</th>
+                    <th class="px-4 py-2 border">Durasi (menit)</th> {{-- Tambahan --}}
+                    <th class="px-4 py-2 border">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($routeStops as $stop)
+                    <tr>
+                        <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-2 border">{{ $stop->route->origin }} -
+                            {{ $stop->route->destination }}</td>
+                        <td class="px-4 py-2 border">{{ $stop->stop_order }}</td>
+                        <td class="px-4 py-2 border">{{ $stop->stop_name }}</td>
+                        <td class="px-4 py-2 border">
+                            {{ $stop->travel_minutes ?? '-' }}
+                        </td> {{-- Tambahan --}}
+                        <td class="px-4 py-2 border space-x-2">
+                            <a href="{{ route('stop.edit', $stop->id) }}"
+                                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</a>
+                            <form action="{{ route('stop.destroy', $stop->id) }}" method="POST"
+                                class="inline-block" onsubmit="return confirm('Yakin hapus data ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-4 py-2 border text-center">
+                            Tidak ada data pemberhentian
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
 
-
-
-                                    <td class="px-4 py-2 border space-x-2">
-                                        <a href="{{ route('stop.edit', $stop->id) }}"
-                                            class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</a>
-                                        <form action="{{ route('stop.destroy', $stop->id) }}" method="POST"
-                                            class="inline-block" onsubmit="return confirm('Yakin hapus data ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="px-4 py-2 border text-center">Tidak ada data pemberhentian
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
         </div>
     </div>

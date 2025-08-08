@@ -13,7 +13,8 @@ class Stop extends Model
     protected $fillable = [
         'route_id',
         'stop_order',
-        'stop_name', // Harga dari stop sebelumnya
+        'stop_name',
+        'travel_minutes' // Harga dari stop sebelumnya
     ];
 
     // Relasi ke tabel routes

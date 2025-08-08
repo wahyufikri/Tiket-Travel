@@ -77,8 +77,11 @@ class OrderController extends Controller
 
     public function show(Order $order)
 {
+    
     $trip = $order->schedule;
     $passengers = $order->passengers; // asumsi relasi passengers() di model Order
+
+
 
     return view('homepage.public.show', [
         'order' => $order,
@@ -175,7 +178,7 @@ public function destroy($id)
 
 public function downloadTicket(Order $order)
 {
-   
+
 
     $order->load('passengers');
     $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order'))
