@@ -15,11 +15,11 @@
 
             <div class="mb-4 grid grid-cols-2 text-sm">
                 <div>
-                    <p class="font-medium">{{ $trip->origin }}</p>
-                    <p>{{ \Carbon\Carbon::parse($trip->departure_date)->translatedFormat('l, d F Y') }}</p>
+                    <p class="font-medium">{{ $origin }}</p>
+                    <p>{{ \Carbon\Carbon::parse($departure_segment)->translatedFormat('l, d F Y') }}</p>
                 </div>
                 <div>
-                    <p class="font-medium">{{ $trip->destination }}</p>
+                    <p class="font-medium">{{ $destination }}</p>
                     <p>{{ $trip->departure_time }} WIB</p>
                 </div>
             </div>
@@ -29,8 +29,8 @@
             <h3 class="font-semibold mb-2">DATA PEMESAN</h3>
             <div class="text-sm mb-2">
                 <p><strong>Nama Pemesan:</strong> {{ $passengerNames[0] ?? '-' }}</p>
-                <p><strong>Kontak:</strong> +62xxxxxxxxxxx</p>
-                <p><strong>Email:</strong> email@example.com</p>
+                <p><strong>Kontak:</strong> {{ $phone }}</p>
+                <p><strong>Email:</strong> {{ $email }}</p>
             </div>
 
             <table class="w-full text-sm border mt-2">

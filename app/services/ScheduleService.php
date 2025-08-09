@@ -75,25 +75,7 @@ class ScheduleService
                 'status' => $data['status'] ?? 'active',
             ]);
 
-            // 5. Buat kursi
-            $config = explode(',', $vehicle->seat_configuration);
-            foreach ($config as $rowConfig) {
-                if (!str_contains($rowConfig, '=')) continue;
-
-                [$row, $count] = explode('=', $rowConfig);
-                $row = strtoupper(trim($row));
-                $count = (int) trim($count);
-
-                if ($count <= 0) continue;
-
-                for ($i = 1; $i <= $count; $i++) {
-                    Seat::create([
-                        'vehicle_id' => $vehicle->id,
-                        'seat_number' => $row . $i,
-                        'is_booked' => false,
-                    ]);
-                }
-            }
+            
 
             // 6. Update lokasi driver dan kendaraan
             $driver->current_location = $route->origin;

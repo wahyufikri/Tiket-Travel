@@ -63,10 +63,58 @@
             </div>
 
             <!-- Departure Time -->
-            <div>
-                <label for="departure_time" class="block font-semibold">Waktu Keberangkatan <span class="text-red-500">*</span></label>
-                <input type="time" name="departure_time" id="departure_time" class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500" value="{{ old('departure_time', $schedules->departure_time) }}" required>
-            </div>
+           <div x-data="{
+        departureTime: '{{ old('departure_time', $schedules->departure_time ? \Carbon\Carbon::parse($schedules->departure_time)->format('H:i') : '') }}',
+        customTime: false
+    }" class="mb-4">
+
+    <label for="departure_time" class="block font-semibold mb-2 text-gray-700">
+        Waktu Keberangkatan <span class="text-red-500">*</span>
+    </label>
+
+    <!-- Grid Tombol Jam -->
+    <div class="grid grid-cols-4 gap-2 mb-3">
+        @foreach(['05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00', '19:00'] as $time)
+            <button type="button"
+                @click="departureTime = '{{ $time }}'; customTime = false"
+                :class="departureTime === '{{ $time }}' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-blue-100'"
+                class="px-3 py-2 rounded-lg text-sm font-medium transition">
+                {{ $time }}
+            </button>
+        @endforeach
+
+        <!-- Tombol Custom -->
+        <button type="button"
+            @click="customTime = true; departureTime = ''"
+            :class="customTime ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-yellow-100'"
+            class="px-3 py-2 rounded-lg text-sm font-medium transition">
+            Custom
+        </button>
+    </div>
+
+    <!-- Input Time untuk Custom -->
+    <template x-if="customTime">
+        <input type="time"
+            name="departure_time"
+            id="departure_time"
+            x-model="departureTime"
+            class="w-full border rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+                   @error('departure_time') border-red-500 focus:ring-red-500 @enderror"
+            required>
+    </template>
+
+    <!-- Hidden input untuk pilihan cepat -->
+    <template x-if="!customTime">
+        <input type="hidden" name="departure_time" :value="departureTime" required>
+    </template>
+
+    @error('departure_time')
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+
+
 
             <!-- Available Seats -->
             <div>
@@ -83,7 +131,7 @@
                         <span class="ml-2">Aktif</span>
                     </label>
                     <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="complete" class="form-radio text-red-500" {{ old('status', $schedules->status) == 'complete' ? 'checked' : '' }}>
+                        <input type="radio" name="status" value="completed" class="form-radio text-red-500" {{ old('status', $schedules->status) == 'completed' ? 'checked' : '' }}>
                         <span class="ml-2">Selesai</span>
                     </label>
                     <label class="inline-flex items-center">

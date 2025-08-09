@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Order;
+use App\Models\Booking; // pastikan modelnya ada
 use Carbon\Carbon;
 
 class AutoCancelUnpaidOrders extends Command
@@ -21,11 +22,16 @@ class AutoCancelUnpaidOrders extends Command
             ->get();
 
         foreach ($orders as $order) {
+            // Update status order jadi batal
             $order->update(['order_status' => 'batal']);
-            $order->passengers()->delete(); // hapus penumpangnya juga
+
+            // Hapus penumpang
+            $order->passengers()->delete();
+
+            // Hapus data di tabel bookings (kalau punya relasi)
+            Booking::where('order_id', $order->id)->delete();
         }
 
         $this->info("Pembatalan otomatis selesai. Total dibatalkan: " . $orders->count());
     }
 }
-

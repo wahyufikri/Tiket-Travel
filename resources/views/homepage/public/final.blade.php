@@ -46,7 +46,7 @@
                 </div>
                 <div>
                     <span class="block font-medium text-gray-700">Jadwal:</span>
-                    <span>{{ $order->schedule->departure_time->format('d F Y, H:i') }}</span>
+                    <span>{{ $departure_segment }} → {{ $arrival_segment }}</span>
                 </div>
             </div>
 

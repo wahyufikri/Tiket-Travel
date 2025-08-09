@@ -1,7 +1,7 @@
 @extends('dashboard.layouts.main') <!-- Ganti sesuai layout utama kamu -->
 
 @section('content')
-    <div class="container mx-auto p-6">
+    <div class="container mx-auto p-6" >
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Data Kendaraan</h2>
             <a href="/kendaraan/create" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
@@ -119,7 +119,7 @@
                                 @endif
                             </a>
                         </th>
-                        <th class="px-4 py-2">Lokasi Terkini</th>
+
 
                         <th class="px-4 py-2">
                             <a href="{{ route('kendaraan.index', array_merge(request()->query(), ['sort_by' => 'status', 'sort_direction' => $sortBy === 'status' && $sortDirection === 'asc' ? 'desc' : 'asc'])) }}"
@@ -147,7 +147,7 @@
                             <td class="px-4 py-2">{{ $vehicle->type }}</td>
                             <td class="px-4 py-2">{{ $vehicle->capacity }}</td>
                             <td class="px-4 py-2">{{ $vehicle->year }}</td>
-                            <td class="px-4 py-2">{{ $vehicle->current_location ?? '-' }}</td>
+
                             <td class="px-4 py-2">
                                 @if ($vehicle->status == 'active')
                                     <span class="inline-block bg-green-500 text-white px-2 py-1 rounded-full text-xs">

@@ -3,7 +3,16 @@
 @section('content')
     <div class="container mx-auto p-6">
         <h2 class="text-2xl font-bold mb-4">Tambah Sopir Baru</h2>
-        
+
+ @if ($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
         <form action="{{ route('sopir.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-md space-y-4">
             @csrf
@@ -48,7 +57,7 @@
             </div>
 
             <!-- Pilih Kendaraan -->
-            <!-- Pilih Kendaraan -->
+            {{-- <!-- Pilih Kendaraan -->
             <div x-data="vehicleDropdown()" class="relative w-full">
                 <label class="block font-semibold mb-1">Pilih Kendaraan <span class="text-red-500">*</span></label>
 
@@ -78,7 +87,7 @@
                 <template x-for="id in selected" :key="id">
                     <input type="hidden" name="vehicles[]" :value="id">
                 </template>
-            </div>
+            </div> --}}
 
 
             <!-- Tombol -->

@@ -3,6 +3,16 @@
 @section('content')
     <div class="container mx-auto p-6">
         <h2 class="text-2xl font-bold mb-4">Tambah Kendaraan Baru</h2>
+        @if ($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
         <form id="vehicleForm" action="{{ route('kendaraan.store') }}" method="POST"
             class="bg-white p-6 rounded-lg shadow-md space-y-4">

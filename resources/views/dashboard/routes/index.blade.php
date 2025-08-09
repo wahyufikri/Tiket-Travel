@@ -83,17 +83,7 @@
                                 @endif
                             </a>
                         </th>
-                        <th class="px-4 py-2">
-                            <a href="{{ route('rute.index', array_merge(request()->query(), ['sort_by' => 'price', 'sort_direction' => $sortBy === 'price' && $sortDirection === 'asc' ? 'desc' : 'asc'])) }}"
-                               class="flex items-center space-x-1">
-                                <span>Harga</span>
-                                @if ($sortBy === 'price')
-                                    <i class="fas {{ $sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort text-gray-400"></i>
-                                @endif
-                            </a>
-                        </th>
+
                         <th class="px-4 py-2">Durasi (menit)</th>
                         <th class="px-4 py-2">Aksi</th>
                     </tr>
@@ -104,7 +94,7 @@
                             <td class="px-4 py-2">{{ $index + 1 }}</td>
                             <td class="px-4 py-2">{{ $route->origin }}</td>
                             <td class="px-4 py-2">{{ $route->destination }}</td>
-                            <td class="px-4 py-2">{{ $route->price }}</td>
+                           
                             <td class="px-4 py-2">{{ $route->duration_minutes }} menit</td>
                             <td class="px-4 py-2 flex space-x-2">
                                 <a href="/rute/{{ $route->id }}/edit" class="text-yellow-500 hover:text-yellow-700">

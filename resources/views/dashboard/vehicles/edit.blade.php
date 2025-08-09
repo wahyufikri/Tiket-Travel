@@ -3,6 +3,16 @@
 @section('content')
     <div class="container mx-auto p-6">
         <h2 class="text-2xl font-bold mb-4">Edit Kendaraan</h2>
+        @if ($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
         <form id="vehicleForm" action="{{ route('kendaraan.update', $vehicles->id) }}" method="POST"
             class="bg-white p-6 rounded-lg shadow-md space-y-4">
@@ -101,12 +111,12 @@
                     </label>
                 </div>
             </div>
-            <div class="mb-4">
+            {{-- <div class="mb-4">
                 <label for="current_location" class="block text-sm font-medium text-gray-700">Lokasi Terkini</label>
                 <input type="text" name="current_location" id="current_location"
                     value="{{ old('current_location', $vehicle->current_location ?? '') }}"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            </div>
+            </div> --}}
 
 
             {{-- Tombol --}}

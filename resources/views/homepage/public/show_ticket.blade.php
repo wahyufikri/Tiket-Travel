@@ -38,8 +38,8 @@
             {{-- Rute --}}
             <div>
                 <h3 class="text-lg font-semibold text-gray-800 border-b pb-1 mb-2">Rute & Jadwal</h3>
-                <p><span class="font-medium">Rute:</span> {{ $order->schedule->route->start_location }} → {{ $order->schedule->route->end_location }}</p>
-                <p><span class="font-medium">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($order->schedule->departure_time)->format('d F Y, H:i') }}</p>
+                <p><span class="font-medium">Rute:</span> {{ $origin }} → {{ $destination }}</p>
+                <p><span class="font-medium">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($departure_segment)->format('d F Y, H:i') }}</p>
             </div>
 
             {{-- Harga & Pembayaran --}}

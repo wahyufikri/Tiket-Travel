@@ -77,9 +77,11 @@ class OrderController extends Controller
 
     public function show(Order $order)
 {
-    
+
     $trip = $order->schedule;
-    $passengers = $order->passengers; // asumsi relasi passengers() di model Order
+    $passengers = $order->passengers;
+    $origin = session('origin');
+    $destination = session('destination'); // asumsi relasi passengers() di model Order
 
 
 
@@ -89,6 +91,12 @@ class OrderController extends Controller
         'selectedSeats' => $passengers->pluck('seat_number'),
         'passengerNames' => $passengers->pluck('name'),
         'pax' => $order->seat_quantity,
+        'origin' => $origin,
+        'destination' => $destination,
+        'departure_segment' => session('departure_segment'),
+        'arrival_segment' => session('arrival_segment'),
+        'phone' => session('customer.customer_phone'),
+        'email' => session('customer.customer_email'),
     ]);
 }
 
@@ -173,7 +181,13 @@ public function destroy($id)
 
 
     $order->load('passengers');
-    return view('homepage.public.show_ticket', compact('order'));
+    $origin = session('origin');
+    $destination = session('destination');
+    $departure_segment = session('departure_segment');
+    $arrival_segment = session('arrival_segment');
+    $phone = session('customer.customer_phone');
+    $email = session('customer.customer_email');
+    return view('homepage.public.show_ticket', compact('order', 'departure_segment', 'arrival_segment', 'phone', 'email','origin', 'destination'));
 }
 
 public function downloadTicket(Order $order)
@@ -181,7 +195,11 @@ public function downloadTicket(Order $order)
 
 
     $order->load('passengers');
-    $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order'))
+    $origin = session('origin');
+    $destination = session('destination');
+    $departure_segment = session('departure_segment');
+    $arrival_segment = session('arrival_segment');
+    $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order','departure_segment', 'arrival_segment', 'origin', 'destination'))
         ->setPaper('A4', 'portrait');
 
     return $pdf->download('tiket_' . $order->id . '.pdf');

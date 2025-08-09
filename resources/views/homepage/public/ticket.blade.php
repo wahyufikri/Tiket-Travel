@@ -63,8 +63,8 @@
         {{-- Rute & Jadwal --}}
         <div class="section-title">Rute & Jadwal</div>
         <div class="info">
-            <p><strong>Rute:</strong> {{ $order->schedule->route->origin }} → {{ $order->schedule->route->destination }}</p>
-            <p><strong>Tanggal & Waktu:</strong> {{ \Carbon\Carbon::parse($order->schedule->departure_time)->format('d F Y, H:i') }}</p>
+            <p><strong>Rute:</strong> {{ $origin }} → {{ $destination }}</p>
+            <p><strong>Tanggal & Waktu:</strong> {{ \Carbon\Carbon::parse($departure_segment)->format('d F Y, H:i') }}</p>
         </div>
 
         {{-- Pembayaran --}}

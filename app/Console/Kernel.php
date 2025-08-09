@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('schedule:mark-completed')->daily();
 
-        $schedule->command('orders:cancel-unpaid')->everyFiveMinutes();
+        $schedule->command('orders:cancel-unpaid')->everyMinutes();
 
     }
 

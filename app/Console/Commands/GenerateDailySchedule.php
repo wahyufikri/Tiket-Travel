@@ -63,23 +63,6 @@ class GenerateDailySchedule extends Command
             ]);
 
 
-            // Buat kursi dari konfigurasi kendaraan
-            if ($vehicle->seat_configuration) {
-                $configs = explode(',', $vehicle->seat_configuration);
-                foreach ($configs as $config) {
-                    [$row, $count] = explode('=', $config);
-                    $row = strtoupper(trim($row));
-                    $count = (int) trim($count);
-
-                    for ($i = 1; $i <= $count; $i++) {
-                        Seat::create([
-                            'vehicle_id' => $vehicle->id,
-                            'seat_number' => $row . $i,
-                            'is_booked' => false,
-                        ]);
-                    }
-                }
-            }
 
             // Perbarui lokasi driver dan kendaraan
             $driver->current_location = $route->origin;

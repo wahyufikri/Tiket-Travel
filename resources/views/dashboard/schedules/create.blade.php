@@ -4,7 +4,15 @@
     <div class="container mx-auto p-6">
         <h2 class="text-2xl font-bold mb-4">Tambah Jadwal Baru</h2>
 
-
+@if ($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
         <form action="{{ route('jadwal.store') }}" method="POST" class="bg-white p-6 rounded-lg shadow-md space-y-4"
             x-data="scheduleForm()">
             @csrf
@@ -71,37 +79,80 @@
 
             <!-- Tanggal -->
             <div class="mb-4">
-                <label for="departure_date" class="block font-semibold">
-                    Tanggal Keberangkatan <span class="text-red-500">*</span>
-                </label>
-                <input type="date" name="departure_date" id="departure_date"
-                    class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500 @error('departure_date') border-red-500 @enderror"
-                    value="{{ old('departure_date') }}" required>
-                @error('departure_date')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+    <label for="departure_date" class="block text-sm font-medium text-gray-700 mb-1">
+        <i class="fa-regular fa-calendar-days mr-1 text-gray-500"></i>
+        Tanggal Keberangkatan <span class="text-red-500">*</span>
+    </label>
+
+    <div class="relative">
+        <input
+            type="date"
+            name="departure_date"
+            id="departure_date"
+            value="{{ old('departure_date') }}"
+            required
+            class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-gray-700
+                   focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition
+                   @error('departure_date') border-red-500 focus:ring-red-600 @enderror">
+        <i class="fa-regular fa-calendar-days absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    </div>
+
+    @error('departure_date')
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
 
             <!-- Waktu -->
-            <div class="mb-4">
-                <label for="departure_time" class="block font-semibold">
-                    Waktu Keberangkatan <span class="text-red-500">*</span>
-                </label>
-                <input type="time" name="departure_time" id="departure_time"
-                    class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500 @error('departure_time') border-red-500 @enderror"
-                    x-model="departureTime" @change="updateArrivalTime()" value="{{ old('departure_time') }}" required>
-                @error('departure_time')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+            <div class="mb-4" x-data="{ departureTime: '{{ old('departure_time') }}', custom: false }">
+    <label for="departure_time" class="block text-sm font-medium text-gray-700 mb-2">
+        <i class="fa-regular fa-clock mr-1 text-gray-500"></i>
+        Waktu Keberangkatan <span class="text-red-500">*</span>
+    </label>
+
+    <!-- Grid Pilihan Jam -->
+    <div class="grid grid-cols-4 gap-2">
+        @foreach (['05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'] as $time)
+            <button
+                type="button"
+                @click="departureTime = '{{ $time }}'; custom = false"
+                :class="departureTime === '{{ $time }}' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-red-100'"
+                class="px-3 py-2 rounded-lg shadow transition font-medium">
+                {{ $time }}
+            </button>
+        @endforeach
+
+        <!-- Pilihan Custom -->
+        <button
+            type="button"
+            @click="custom = true; departureTime = ''"
+            :class="custom ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-red-100'"
+            class="px-3 py-2 rounded-lg shadow transition font-medium">
+            Custom
+        </button>
+    </div>
+
+    <!-- Input Custom Time -->
+    <div x-show="custom" class="mt-3">
+        <input type="time"
+               id="departure_time"
+               class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500
+                      @error('departure_time') border-red-500 @enderror"
+               x-model="departureTime"
+               @change="updateArrivalTime()"
+               required>
+    </div>
+
+    <!-- Hidden input untuk submit ke server -->
+    <input type="hidden" name="departure_time" :value="departureTime">
+
+    @error('departure_time')
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
 
             <!-- Estimasi Tiba -->
-            <div class="mb-4">
-                <label class="block font-semibold">
-                    Estimasi Waktu Tiba
-                </label>
-                <p x-text="arrivalTime || '--:--'" class="text-gray-700 mt-1 font-semibold"></p>
-            </div>
 
 
             <!-- Jumlah Kursi -->

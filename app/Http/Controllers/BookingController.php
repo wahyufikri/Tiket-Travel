@@ -18,25 +18,31 @@ use Illuminate\Support\Str;
 class BookingController extends Controller
 {
     public function book(Request $request)
-    {
-        $schedule = Schedule::with('route')->findOrFail($request->schedule_id);
-        $pax = $request->pax ?? 1;
+{
+    $schedule = Schedule::with('route')->findOrFail($request->schedule_id);
+    $pax = $request->pax ?? 1;
 
     // Simpan ke session
     session([
         'origin' => $request->origin,
         'destination' => $request->destination,
         'price' => $request->price,
-        'pax' => $request->pax,
+        'pax' => $pax,
         'departure_date' => $request->date,
+        'departure_segment' => $request->departure_segment,
+        'arrival_segment' => $request->arrival_segment,
     ]);
-        return view('homepage.public.booking', [
-            'trip' => $schedule,
-            'pax' => $pax,
-            'origin' => $request->origin,
-            'destination' => $request->destination,
-        ]);
-    }
+
+    return view('homepage.public.booking', [
+        'trip' => $schedule,
+        'pax' => $pax,
+        'origin' => $request->origin,
+        'destination' => $request->destination,
+        'departure_segment' => $request->departure_segment,
+        'arrival_segment' => $request->arrival_segment,
+    ]);
+}
+
 
    public function selectSeat(Request $request)
 {
@@ -56,6 +62,10 @@ class BookingController extends Controller
     $originStop = $schedule->route->stops->firstWhere('stop_name', session('origin'));
     $destinationStop = $schedule->route->stops->firstWhere('stop_name', session('destination'));
 
+    // Ambil departure_segment dan arrival_segment dari session lama (kalau ada)
+    $departureSegment = session('departure_segment');
+    $arrivalSegment = session('arrival_segment');
+
     session([
         'customer' => [
             'name' => $request->name,
@@ -72,10 +82,13 @@ class BookingController extends Controller
         'pax' => count($request->passenger_names),
         'origin' => $originStop ? $originStop->stop_name : null,
         'destination' => $destinationStop ? $destinationStop->stop_name : null,
+        'departure_segment' => $departureSegment,
+        'arrival_segment' => $arrivalSegment,
     ]);
 
     return redirect()->route('public.seatSelection', ['schedule_id' => $schedule->id]);
 }
+
 
     public function showSeatSelection($schedule_id)
 {
@@ -86,6 +99,10 @@ class BookingController extends Controller
     // Ambil origin & destination dari session
     $origin = session('origin');
     $destination = session('destination');
+
+    // Ambil departure_segment dan arrival_segment dari session
+    $departure_segment = session('departure_segment');
+    $arrival_segment = session('arrival_segment');
 
     // Cari ID stop di database
     $originStopId = Stop::where('stop_name', $origin)->value('id');
@@ -130,7 +147,7 @@ $bookedSeats = Booking::join('route_stops as rs_from', 'bookings.from_stop_id', 
     $passengerNames = session('customer.passenger_names', []);
 
     return view('homepage.public.select-seat', compact(
-        'trip', 'seats', 'pax', 'origin', 'destination', 'price', 'departure_date', 'passengerNames', 'bookedSeats'
+        'trip', 'seats', 'pax', 'origin', 'destination', 'price', 'departure_date', 'passengerNames', 'bookedSeats', 'departure_segment', 'arrival_segment'
     ));
 }
 
@@ -152,6 +169,8 @@ $bookedSeats = Booking::join('route_stops as rs_from', 'bookings.from_stop_id', 
 
     $origin = $request->origin ?? session('origin');
     $destination = $request->destination ?? session('destination');
+    $departure_segment = $request->departure_segment ?? session('departure_segment');
+    $arrival_segment = $request->arrival_segment ?? session('arrival_segment');
 
 
 
@@ -172,7 +191,9 @@ $bookedSeats = Booking::join('route_stops as rs_from', 'bookings.from_stop_id', 
         'passengerNames',
         'price',
         'origin',
-        'destination'
+        'destination',
+        'departure_segment',
+        'arrival_segment'
     ));
 }
 

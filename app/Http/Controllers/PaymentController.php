@@ -6,9 +6,16 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Services\PaymentService;
 
 class PaymentController extends Controller
 {
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
 
 
 
@@ -20,36 +27,73 @@ class PaymentController extends Controller
 {
     $order = Order::findOrFail($request->order_id);
 
-    // Simpan data pembayaran simulasi
-    $payment = Payment::create([
-        'order_id' => $order->id,
-        'payment_method' => $request->payment_method,
-        'payment_proof' => null, // simulasi, tidak ada bukti
-        'paid_at' => now(),
-        'verified_by' => null, // belum diverifikasi admin
-        'status' => 'terverifikasi', // langsung kita anggap sukses
-    ]);
+    // Simulasi pembayaran lewat service (misal service ini nge-return true jika sukses, false kalau gagal)
+    $isPaid = $this->paymentService->simulatePayment($request->payment_method, $order);
 
-    // Update status order
-    $order->order_status = 'proses';
-    $order->payment_status = 'lunas';
-    $order->save();
+    if ($isPaid) {
+        // Buat data payment dengan status terverifikasi
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => $request->payment_method,
+            'payment_proof' => null,
+            'paid_at' => now(),
+            'verified_by' => null,
+            'status' => 'terverifikasi',
+        ]);
 
-    // Jika pembayaran terverifikasi, masukkan juga ke tabel transactions
-    if ($payment->status === 'terverifikasi') {
+        // Update status order
+        $order->order_status = 'proses';
+        $order->payment_status = 'lunas';
+        $order->save();
+
+        // Buat transaksi di tabel transactions
         Transaction::create([
-            'type' => 'income', // bisa 'income' atau 'expense' sesuai kebutuhan
+            'type' => 'income',
             'order_id' => $order->id,
             'title' => 'Tiket Website',
-            'amount' => $order->total_price, // pastikan field ini ada di Order
-            'category_id' => 1, // ID kategori transaksi yang sesuai
+            'amount' => $order->total_price,
+            'category_id' => 1,
             'transaction_date' => now(),
-            'payment_method' => 'Website', // pastikan ini ID dari payment method,
+            'payment_method' => $request->payment_method,
+        ]);
+
+        // Tampilkan halaman sukses dengan data order dan rute
+        return view('homepage.public.final', [
+            'order' => $order,
+            'origin' => session('origin'),
+            'destination' => session('destination'),
+            'departure_segment' => session('departure_segment'),
+            'arrival_segment' => session('arrival_segment'),
+            'phone' => session('customer.customer_phone'),
+            // data tambahan kalau perlu
+        ]);
+    } else {
+        // Buat data payment dengan status gagal
+        Payment::create([
+            'order_id' => $order->id,
+            'payment_method' => $request->payment_method,
+            'payment_proof' => null,
+            'paid_at' => null,
+            'verified_by' => null,
+            'status' => 'ditolak',
+        ]);
+
+        // Update order status jadi belum lunas / pending
+        $order->order_status = 'menunggu';
+        $order->payment_status = 'gagal';
+        $order->save();
+
+        // Tampilkan halaman gagal dengan pesan error
+        return view('homepage.public.failed', [
+            'order' => $order,
+            'origin' => $order->origin,
+            'destination' => $order->destination,
+            'errorMessage' => 'Pembayaran gagal, coba lagi.',
+            // data tambahan kalau perlu
         ]);
     }
-
-    return redirect()->route('checkout.success', $order->id);
 }
+
 
 
     public function success($orderId)
@@ -57,11 +101,15 @@ class PaymentController extends Controller
     $order = Order::with(['payment', 'schedule.route', 'customer', 'passengers'])->findOrFail($orderId);
     $origin = $request->origin ?? session('origin');
 $destination = $request->destination ?? session('destination');
+$departure_segment = session('departure_segment');
+$arrival_segment = session('arrival_segment');
+$phone = session('customer.customer_phone');
+$email = session('customer.customer_email');
 
     // Ambil penumpang pertama untuk ditampilkan
     $passenger = $order->passengers->first();
 
-    return view('homepage.public.final', compact('order', 'passenger','origin', 'destination'));
+    return view('homepage.public.final', compact('order', 'passenger','origin', 'destination','departure_segment', 'arrival_segment', 'phone', 'email'));
 }
 
 }

@@ -3,6 +3,15 @@
 @section('content')
     <div class="container mx-auto p-6">
         <h2 class="text-2xl font-bold mb-4">Edit Data Rute</h2>
+         @if ($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
         <form action="/rute/{{ $routes->id }}" method="POST" class="bg-white p-6 rounded-lg shadow-md space-y-4">
             @method('PUT')
@@ -25,12 +34,6 @@
             </div>
 
             <!-- Harga -->
-            <div>
-                <label for="price" class="block font-semibold">Harga <span class="text-red-500">*</span></label>
-                <input type="text" name="price" id="price" maxlength="60"
-                    class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    value="{{ old('price', $routes->price) }}" required>
-            </div>
 
             <!-- Durasi -->
             <div>

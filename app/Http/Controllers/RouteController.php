@@ -42,14 +42,12 @@ class RouteController extends Controller
     $validated = $request->validate([
         'origin' => 'required|max:60',
         'destination' => 'required|max:60',
-        'price' => 'required|numeric',
         'duration_minutes' => 'required|integer|min:1', // tambahkan ini
     ]);
 
     Route::create([
         'origin' => $validated['origin'],
         'destination' => $validated['destination'],
-        'price' => $validated['price'],
         'duration_minutes' => $validated['duration_minutes'], // tambahkan ini juga
     ]);
 
@@ -68,14 +66,14 @@ class RouteController extends Controller
         $validated = $request->validate([
              'origin' => 'required|max:60',
             'destination' => 'required|max:60',
-            'price' => 'required|numeric',
+
             'duration_minutes' => 'required|integer|min:1',
         ]);
 
         $route = Route::findOrFail($id);
         $route->origin = $validated['origin'];
         $route->destination = $validated['destination'];
-        $route->price = $validated['price'];
+     
         $route->duration_minutes = $validated['duration_minutes']; // tambahkan ini
         $route->save();
 

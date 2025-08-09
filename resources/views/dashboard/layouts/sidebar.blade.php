@@ -1,5 +1,5 @@
 <!-- resources/views/layouts/sidebar.blade.php -->
-<aside x-data="{ open: false, showLogoutConfirm: false }" class="w-64 h-screen bg-[#8B0000] text-white fixed">
+<aside x-data="{ open: false, showLogoutConfirm: false }" class="w-64 h-screen bg-[#8B0000] text-white fixed ">
 
     <div class="p-6 font-bold text-lg flex flex-col items-center space-y-2">
     <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" class="w-20 h-20 object-contain">
@@ -27,24 +27,51 @@
         Sopir
     </a>
 
-    <a href="{{ url('/rute') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Map Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
+    <div x-data="{ open: false }" class="transition-all">
+    <button @click="open = !open"
+        class="w-full flex justify-between items-center py-2 px-4 rounded hover:bg-[#a83232] cursor-pointer">
+        <div class="flex items-center space-x-2">
+            <!-- Map Icon -->
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
+            </svg>
+            <span>Rute</span>
+        </div>
+        <!-- Panah Dropdown -->
+        <svg :class="{ 'rotate-90': open }"
+             class="h-4 w-4 transform transition-transform duration-300"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5l7 7-7 7" />
         </svg>
-        Rute
-    </a>
-    <a href="{{ url('/stop') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Map Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
-        </svg>
-        Rute Stop
-    </a>
+    </button>
+
+    <!-- Isi dropdown -->
+    <div x-show="open" x-transition x-cloak
+         class="ml-4 mt-1 space-y-1 pl-2 border-l border-[#c34f4f]">
+        <a href="{{ url('/rute') }}"
+           class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
+            </svg>
+            <span>Daftar Rute</span>
+        </a>
+        <a href="{{ url('/stop') }}"
+           class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.947L9 1v19zm6-19l5.447 2.724A2 2 0 0121 5.618v9.764a2 2 0 01-1.553 1.947L15 20V1z"></path>
+            </svg>
+            <span>Rute Stop</span>
+        </a>
+    </div>
+</div>
+
 
     <!-- Jadwal Dropdown -->
 <div x-data="{ open: false }" class="transition-all">
@@ -86,34 +113,58 @@
 </div>
 
 
-    <a href="{{ url('/pemesanan') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Clipboard Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 12h6m-6 4h6M5 7h14M9 3h6a2 2 0 012 2v1H7V5a2 2 0 012-2z"></path>
+    <div x-data="{ open: false }" class="transition-all">
+    <!-- Tombol utama -->
+    <button @click="open = !open" class="w-full flex justify-between items-center py-2 px-4 rounded hover:bg-[#a83232] cursor-pointer">
+        <div class="flex items-center space-x-2">
+            <!-- Icon Folder Keuangan -->
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+            </svg>
+            <span>Transaksi</span>
+        </div>
+        <!-- Panah -->
+        <svg :class="{ 'rotate-90': open }" class="h-4 w-4 transform transition-transform duration-300"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5l7 7-7 7" />
         </svg>
-        Pemesanan
-    </a>
+    </button>
 
-    <a href="{{ url('/pembayaran') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-        <!-- Credit Card Icon -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 6h16M4 10h16M4 14h7m-7 4h16a2 2 0 002-2V8a2 2 0 00-2-2H4"></path>
-        </svg>
-        Pembayaran
-    </a>
-<a href="{{ url('/keuangan') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
-    <!-- Money Icon -->
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-         viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0V7a2 2 0 012-2h2a2 2 0 012 2v2m-4 0h-4m4 0v6m0 0h4m-4 0h-4m-6 0h4m-4 0H5m4 0v-6" />
-    </svg>
-    Keuangan
-</a>
+    <!-- Isi dropdown -->
+    <div x-show="open" x-transition x-cloak class="ml-4 mt-1 space-y-1 pl-2 border-l border-[#c34f4f]">
+        <a href="{{ url('/pemesanan') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <!-- Clipboard Icon -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12h6m-6 4h6M5 7h14M9 3h6a2 2 0 012 2v1H7V5a2 2 0 012-2z"></path>
+            </svg>
+            <span>Pemesanan</span>
+        </a>
+        <a href="{{ url('/pembayaran') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <!-- Credit Card Icon -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 6h16M4 10h16M4 14h7m-7 4h16a2 2 0 002-2V8a2 2 0 00-2-2H4"></path>
+            </svg>
+            <span>Pembayaran</span>
+        </a>
+        <a href="{{ url('/keuangan') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+            <!-- Money Icon -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0V7a2 2 0 012-2h2a2 2 0 012 2v2m-4 0h-4m4 0v6m0 0h4m-4 0h-4m-6 0h4m-4 0H5m4 0v-6" />
+            </svg>
+            <span>Keuangan</span>
+        </a>
+    </div>
+</div>
+
 
     <a href="{{ url('/notifikasi') }}" class="flex items-center gap-2 py-2 px-4 rounded hover:bg-[#a83232]">
         <!-- Bell Icon -->
@@ -149,13 +200,13 @@
             </svg>
             <span>Admin</span>
         </a>
-        <a href="{{ url('/user') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
+        <a href="{{ url('/pelanggan') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
             <!-- Ikon User -->
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 16.5c0 2.486-1.64 4.5-3.667 4.5H6.667C4.64 21 3 18.986 3 16.5c0-1.61.635-3.068 1.674-4.12L12 14z" />
             </svg>
-            <span>User</span>
+            <span>Pelanggan</span>
         </a>
         <a href="{{ url('/manajemen-role') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
     <!-- Ikon Role -->

@@ -9,7 +9,7 @@ class Route extends Model
     protected $table = 'routes'; // Nama tabel yang sesuai dengan database Anda
 
     protected $fillable = [
-        'origin','destination','price','duration_minutes'
+        'origin','destination','duration_minutes'
     ];
     // Route.php
 protected $casts = [

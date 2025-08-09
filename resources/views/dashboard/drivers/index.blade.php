@@ -95,17 +95,7 @@
                                 @endif
                             </a>
                         </th>
-                        <th class="px-4 py-2">
-    <a href="{{ route('sopir.index', array_merge(request()->query(), ['sort_by' => 'current_location', 'sort_direction' => $sortBy === 'current_location' && $sortDirection === 'asc' ? 'desc' : 'asc'])) }}"
-        class="flex items-center space-x-1">
-        <span>Lokasi Terkini</span>
-        @if ($sortBy === 'current_location')
-            <i class="fas {{ $sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down' }}"></i>
-        @else
-            <i class="fas fa-sort text-gray-400"></i>
-        @endif
-    </a>
-</th>
+
 
 
                         <th class="px-4 py-2">
@@ -130,7 +120,7 @@
                             <td class="px-4 py-2">{{ $driver->name }}</td>
                             <td class="px-4 py-2">{{ $driver->phone_number }}</td>
                             <td class="px-4 py-2">{{ $driver->address }}</td>
-                            <td class="px-4 py-2">{{ $driver->current_location ?? '-' }}</td>
+                            
                             <td class="px-4 py-2">
                                 @if ($driver->status == 'active')
                                     <span class="inline-block bg-green-500 text-white px-2 py-1 rounded-full text-xs">

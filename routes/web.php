@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AutoScheduleController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerLoginController;
 use App\Http\Controllers\CustomerProfilController;
 use App\Http\Controllers\CustomerRegisterController;
@@ -67,6 +68,10 @@ Route::resource('/pemesanan', OrderController::class);
 
 Route::resource('/pembayaran', PaymentController::class);
 Route::resource('/stop', StopsController::class);
+Route::resource('/pelanggan', CustomerController::class);
+
+
+
 // web.php
 Route::get('/stop/{stop}/edit', [StopsController::class, 'edit'])->name('stop.edit');
 
