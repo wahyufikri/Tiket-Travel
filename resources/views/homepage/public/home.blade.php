@@ -223,10 +223,10 @@
                             {{-- Tombol Bayar --}}
                             @if ($order->order_status === 'menunggu' && $order->payment_status === 'belum')
                                 <div class="mt-6 text-center">
-                                    <a href="{{ route('checkout.payment', $order->id) }}"
+                                    {{-- <a href="{{ route('checkout.payment', $order->id) }}"
                                         class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold shadow-md transition transform hover:scale-105">
                                         Bayar Sekarang
-                                    </a>
+                                    </a> --}}
                                 </div>
                             @endif
                         </div>

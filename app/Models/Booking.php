@@ -12,38 +12,44 @@ class Booking extends Model
         'seat_id',
         'from_stop_id',
         'to_stop_id',
-        'passenger_name'
+        'passenger_name',
+        'phone_number', // Tambahkan ini kalau belum ada (untuk nomor WA)
     ];
 
-    /**
-     * Relasi ke Schedule
-     */
+    // Cast agar jadwal bisa langsung pakai Carbon
+    protected $casts = [
+        'departure_time' => 'datetime', // opsional jika kolom ada di booking, biasanya di schedule
+    ];
+
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
     }
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 
-    /**
-     * Relasi ke Seat
-     */
     public function seat()
     {
         return $this->belongsTo(Seat::class);
     }
 
-    /**
-     * Relasi ke RouteStop untuk titik naik
-     */
     public function fromStop()
     {
         return $this->belongsTo(Stop::class, 'from_stop_id');
     }
 
-    /**
-     * Relasi ke RouteStop untuk titik turun
-     */
     public function toStop()
     {
         return $this->belongsTo(Stop::class, 'to_stop_id');
+    }
+
+    /**
+     * Accessor untuk waktu keberangkatan lewat relasi schedule
+     */
+    public function getDepartureTimeAttribute()
+    {
+        return $this->schedule ? $this->schedule->departure_time : null;
     }
 }

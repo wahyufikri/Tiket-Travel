@@ -83,8 +83,9 @@
                             <form action="{{ route('pelanggan.destroy', $customer->id) }}" method="post" class="d-inline">
                                 @method('DELETE')
                                 @csrf
-                                <button class="fas fa-trash text-red-500 hover:text-red-700"
-                                    onclick="return confirm('Yakin akan menghapus customer ini?')"></button>
+                                <button type="button"
+    class="fas fa-trash text-red-500 hover:text-red-700 btn-delete"
+    data-id="{{ $customer->id }}"></button>
                             </form>
                         </td>
                     </tr>
@@ -102,4 +103,52 @@
         {{ $customers->links() }}
     </div>
 </div>
+
+<script>document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            let customerId = this.getAttribute('data-id');
+
+            Swal.fire({
+                title: 'Hapus Data Pelanggan?',
+                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#1f2937', // gelap
+                color: '#fff',
+                confirmButtonColor: '#dc2626', // merah AWR
+                cancelButtonColor: '#6b7280', // abu netral
+                confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus',
+                cancelButtonText: '<i class="fas fa-times"></i> Batal',
+                customClass: {
+                    popup: 'rounded-xl shadow-lg animate__animated animate__shakeX',
+                    confirmButton: 'px-4 py-2 rounded-lg font-semibold',
+                    cancelButton: 'px-4 py-2 rounded-lg font-semibold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/pelanggan/${customerId}`;
+
+                    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    let methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+});</script>
 @endsection

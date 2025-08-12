@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardAdminController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ManajemenAdminController;
+use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
@@ -37,11 +38,12 @@ Route::get('/dashboard', [DashboardAdminController::class, 'Dashboard'])->middle
 
 Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate']);
-Route::post('/logout', [LoginController::class, 'logout']);
+Route::post('/logoutadmin', [LoginController::class, 'logout']);
 
 Route::post('/customer/login', [CustomerLoginController::class, 'login'])->name('customer.login');
 Route::post('/customer/logout', [CustomerLoginController::class, 'logout'])->name('customer.logout');
 Route::post('/customer/register', [CustomerRegisterController::class, 'register'])->name('customer.register');
+Route::get('/test-snap', [PaymentController::class, 'testSnap']);
 
 
 
@@ -64,6 +66,9 @@ Route::resource('/jadwal', ScheduleController::class)->middleware('auth');
 Route::resource('/auto_schedule', AutoScheduleController::class);
 
 Route::resource('/pemesanan', OrderController::class);
+
+Route::get('/pemesanan/create/{route_id}', [OrderController::class, 'create']);
+
 
 
 Route::resource('/pembayaran', PaymentController::class);
@@ -100,12 +105,20 @@ Route::prefix('keuangan')->name('keuangan.')->group(function () {
 
 
 // web.php
-Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show'); // proses dari pilih kursi ke halaman checkout
-Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment'); // halaman pembayaran
-Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process'); // proses final pembayaran
+// Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout.show'); // proses dari pilih kursi ke halaman checkout
+// Route::get('/checkout/{order}', [OrderController::class, 'show'])->name('checkout.payment'); // halaman pembayaran
+// Route::post('/checkout/process', [BookingController::class, 'process'])->name('checkout.process'); // proses final pembayaran
 
 
+Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout');
 
+// Callback dari Midtrans (biar status order otomatis update)
+Route::post('/payment/callback', [MidtransWebhookController::class, 'handle']);
+
+// Optional: halaman sukses pembayaran
+Route::get('/payment/success', function () {
+    return view('homepage.public.success');
+})->name('payment.success');
 
 
 
@@ -147,4 +160,74 @@ Route::get('/checkout/success/{order}', [PaymentController::class, 'success'])->
 Route::get('/orders/{order}/ticket', [OrderController::class, 'showTicket'])->name('orders.showTicket');
 Route::get('/orders/{order}/download-ticket', [OrderController::class, 'downloadTicket'])->name('orders.downloadTicket');
 
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);
+
+Route::get('/get-price', function (Illuminate\Http\Request $request) {
+    $price = \App\Models\StopPrice::where('from_stop_id', $request->origin_id)
+        ->where('to_stop_id', $request->destination_id)
+        ->value('price');
+
+    return response()->json(['price' => $price ?? 0]);
+});
+
+
+Route::get('/test-va-channels', [MidtransWebhookController::class, 'checkAllVaChannels']);
+
+
+Route::get('/test-bri', function () {
+    \Midtrans\Config::$serverKey = config('midtrans.server_key');
+    \Midtrans\Config::$isProduction = false;
+
+    $params = [
+        'payment_type' => 'bank_transfer',
+        'transaction_details' => [
+            'order_id' => 'TEST-BRI-' . uniqid(),
+            'gross_amount' => 10000,
+        ],
+        'bank_transfer' => [
+            'bank' => 'bri'
+        ]
+    ];
+
+    try {
+        $charge = \Midtrans\CoreApi::charge($params);
+        dd($charge);
+    } catch (\Exception $e) {
+        dd($e->getMessage());
+    }
+});
+
+Route::get('/get-seats/{schedule}', [OrderController::class, 'getSeats']);
+
+Route::get('/keuangan/export/{type}/{month}/{year}', [TransactionController::class, 'exportPdf'])
+    ->name('keuangan.export.pdf');
+
+
+Route::get('/payment', function () {
+    \Midtrans\Config::$serverKey = config('midtrans.server_key');
+    \Midtrans\Config::$isProduction = false; // Sandbox
+    \Midtrans\Config::$isSanitized = true;
+    \Midtrans\Config::$is3ds = true;
+
+    $params = [
+        'transaction_details' => [
+            'order_id' => rand(),
+            'gross_amount' => 5104000, // contoh harga
+        ],
+        'enabled_payments' => [
+            'bca_va', // BCA Virtual Account
+            'gopay',  // GoPay
+        ],
+        'customer_details' => [
+            'first_name' => 'Budi',
+            'last_name' => 'Santoso',
+            'email' => 'budi@example.com',
+            'phone' => '081234567890',
+        ],
+    ];
+
+    $snapToken = \Midtrans\Snap::getSnapToken($params);
+
+    return view('payment', compact('snapToken'));
+});
 

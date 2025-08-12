@@ -63,20 +63,26 @@ class ScheduleController extends Controller
     }
 
     public function create()
-    {
-        $routes = Route::all();
-        $vehicles = Vehicle::all();
-        $drivers = Driver::all();
-        $routeStopsGrouped = Stop::all()->groupBy('route_id')->map(function ($stops) {
-        return $stops->map(function ($stop) {
-            return [
-                'id' => $stop->id,
-                'stop_name' => $stop->stop_name,
-            ];
+{
+    $routes = Route::all();
+
+    $vehicles = Vehicle::where('status', 'active')->get();
+    $drivers  = Driver::where('status', 'active')->get();
+
+    $routeStopsGrouped = Stop::all()
+        ->groupBy('route_id')
+        ->map(function ($stops) {
+            return $stops->map(function ($stop) {
+                return [
+                    'id'        => $stop->id,
+                    'stop_name' => $stop->stop_name,
+                ];
+            });
         });
-    });
-        return view('dashboard.schedules.create', compact('routes', 'vehicles', 'drivers', 'routeStopsGrouped'));
-    }
+
+    return view('dashboard.schedules.create', compact('routes', 'vehicles', 'drivers', 'routeStopsGrouped'));
+}
+
 
 
 

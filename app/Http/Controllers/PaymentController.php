@@ -7,6 +7,8 @@ use App\Models\Payment;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Services\PaymentService;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class PaymentController extends Controller
 {
@@ -110,6 +112,45 @@ $email = session('customer.customer_email');
     $passenger = $order->passengers->first();
 
     return view('homepage.public.final', compact('order', 'passenger','origin', 'destination','departure_segment', 'arrival_segment', 'phone', 'email'));
+}
+
+public function testSnap()
+{
+    // Konfigurasi Midtrans
+    Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+    Config::$isProduction = false; // Sandbox
+    Config::$isSanitized = true;
+    Config::$is3ds = true;
+
+    // Data transaksi
+    $params = [
+        'transaction_details' => [
+            'order_id' => 'TEST-' . time(),
+            'gross_amount' => 10000, // HARUS integer, tanpa titik/koma
+        ],
+        'customer_details' => [
+            'first_name' => 'Budi',
+            'last_name' => 'Setiawan',
+            'email' => 'budi@example.com',
+            'phone' => '081234567890',
+        ],
+        'item_details' => [
+            [
+                'id' => 'item1',
+                'price' => 10000,
+                'quantity' => 1,
+                'name' => 'Kamera Sewa'
+            ]
+        ],
+        'credit_card' => [
+            'secure' => true
+        ]
+    ];
+
+    // Buat Snap Token
+    $snapToken = Snap::getSnapToken($params);
+
+    return view('test-snap', compact('snapToken'));
 }
 
 }

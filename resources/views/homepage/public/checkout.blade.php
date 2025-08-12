@@ -5,15 +5,14 @@
 @section('content')
 <div x-data="{ showTerms: false }" class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
     <h2 class="text-3xl font-extrabold text-gray-900 mb-8">Detail Pesanan</h2>
-
     <div class="bg-white shadow-md rounded-lg border border-gray-200 p-8">
         <div class="mb-6">
             <p class="text-red-600 font-semibold text-lg">{{ $origin }} → {{ $destination }}</p>
             <p class="text-gray-600 mt-1">
-                {{ \Carbon\Carbon::parse($trip->departure_date)->isoFormat('dddd, D MMMM Y') }} &bull; {{ $departure_segment }} → {{ $arrival_segment }} WIB
+                {{ \Carbon\Carbon::parse($trip->departure_date)->isoFormat('dddd, D MMMM Y') }}
+                &bull; {{ $departure_segment }} → {{ $arrival_segment }} WIB
             </p>
         </div>
-
         <hr class="border-gray-300 mb-6">
 
         <section>
@@ -46,13 +45,13 @@
             <p><strong>Harga Tiket:</strong> Rp {{ number_format($price, 0, ',', '.') }}</p>
             <p><strong>Jumlah Penumpang:</strong> {{ $pax }}</p>
             <p class="text-lg font-bold">
-                Total Harga: <span class="text-red-600">Rp {{ number_format($price * $pax, 0, ',', '.') }}</span>
+                Total Harga:
+                <span class="text-red-600">Rp {{ number_format($price * $pax, 0, ',', '.') }}</span>
             </p>
         </section>
 
-        <form action="{{ route('checkout.process') }}" method="POST" class="mt-8">
-            @csrf
-
+        {{-- Form hanya untuk membawa data ke Midtrans via Snap --}}
+        <form id="checkout-form">
             <input type="hidden" name="origin" value="{{ $origin }}">
             <input type="hidden" name="destination" value="{{ $destination }}">
             <input type="hidden" name="price" value="{{ $price }}">
@@ -64,82 +63,95 @@
                 <input type="hidden" name="selected_seats[]" value="{{ $seat }}">
             @endforeach
 
-           <label class="flex items-center space-x-3 mt-4">
-            <input type="checkbox" required class="form-checkbox h-5 w-5 text-red-600" id="agreeCheckbox">
-            <span class="text-gray-700 text-sm select-none">
-                Saya telah membaca dan menyetujui
-                <a href="#" @click.prevent="showTerms = true" class="text-red-600 underline hover:text-red-700 cursor-pointer">
-                    Syarat & Ketentuan
-                </a>
-            </span>
-        </label>
+            <label class="flex items-center space-x-3 mt-4">
+                <input type="checkbox" required class="form-checkbox h-5 w-5 text-red-600" id="agreeCheckbox">
+                <span class="text-gray-700 text-sm select-none">
+                    Saya telah membaca dan menyetujui
+                    <a href="#" @click.prevent="showTerms = true"
+                       class="text-red-600 underline hover:text-red-700 cursor-pointer">
+                        Syarat & Ketentuan
+                    </a>
+                </span>
+            </label>
 
-            <button type="submit"
+            <button type="button" id="pay-button"
                 class="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-150">
                 Lanjutkan Pembayaran
             </button>
         </form>
 
-        <div x-show="showTerms"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-         @click.away="showTerms = false"
-         style="display: none;">
+        @if(!empty($vaNumber))
+    <p>Nomor VA BRI: <strong>{{ $vaNumber }}</strong></p>
+@endif
+        {{-- Tampilkan VA jika tersedia --}}
+@if(!empty($vaNumber) && !empty($bank))
+<div class="mt-6 p-4 bg-green-50 border border-green-300 rounded-lg">
+    <p class="font-semibold text-green-700 mb-1">
+        Nomor Virtual Account ({{ strtoupper($bank) }})
+    </p>
+    <p class="text-lg font-mono mb-3">{{ $vaNumber }}</p>
 
-        <div @click.stop class="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6 relative">
-            <h3 class="text-xl font-bold mb-4">Syarat & Ketentuan</h3>
+    {{-- Link ke simulator Midtrans --}}
+    @if(app()->environment('local') || app()->environment('sandbox'))
+        <a href="https://simulator.sandbox.midtrans.com/{{ strtolower($bank) }}/va/index"
+           target="_blank"
+           class="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded shadow">
+           Buka Simulator Pembayaran
+        </a>
+    @endif
 
-            <div class="text-gray-700 text-sm leading-relaxed mb-6 space-y-4">
-    <p><strong>1. Reservasi dan Pembayaran</strong><br>
-    Pemesanan tiket harus dilakukan minimal 2 hari sebelum keberangkatan. Pembayaran harus lunas sebelum jadwal keberangkatan. Pembayaran yang sudah dilakukan bersifat final dan tidak dapat dikembalikan, kecuali pembatalan dilakukan oleh pihak travel.</p>
-
-    <p><strong>2. Pembatalan dan Perubahan Jadwal</strong><br>
-    Pembatalan oleh pelanggan harus diinformasikan minimal 24 jam sebelum jadwal keberangkatan. Pembatalan yang dilakukan kurang dari 24 jam sebelum keberangkatan akan dikenakan biaya pembatalan sebesar 50% dari harga tiket. Perubahan jadwal perjalanan dapat dilakukan paling lambat 24 jam sebelum keberangkatan, tergantung ketersediaan kursi.</p>
-
-    <p><strong>3. Dokumen dan Identitas Penumpang</strong><br>
-    Penumpang wajib membawa identitas resmi seperti KTP, SIM, atau paspor saat keberangkatan. Penumpang bertanggung jawab atas kelengkapan dokumen dan informasi yang diberikan.</p>
-
-    <p><strong>4. Ketepatan Waktu</strong><br>
-    Penumpang wajib hadir di titik keberangkatan paling lambat 30 menit sebelum waktu yang dijadwalkan. Keterlambatan penumpang dapat menyebabkan penumpang ditinggalkan tanpa pengembalian dana.</p>
-
-    <p><strong>5. Bagasi dan Barang Bawaan</strong><br>
-    Penumpang diperbolehkan membawa bagasi dengan berat maksimal 20 kg. Barang berbahaya, mudah terbakar, dan barang ilegal dilarang dibawa dalam perjalanan.</p>
-
-    <p><strong>6. Kesehatan dan Keselamatan</strong><br>
-    Penumpang diharapkan dalam kondisi sehat saat melakukan perjalanan. Pihak travel tidak bertanggung jawab atas kondisi kesehatan penumpang selama perjalanan.</p>
-
-    <p><strong>7. Force Majeure</strong><br>
-    Travel tidak bertanggung jawab atas keterlambatan, pembatalan, atau perubahan jadwal akibat bencana alam, kerusuhan, kecelakaan, atau keadaan darurat lainnya yang berada di luar kendali pihak travel.</p>
-
-    <p><strong>8. Penggunaan Tiket</strong><br>
-    Tiket hanya berlaku untuk penumpang yang namanya tertera pada tiket. Tiket tidak dapat dipindahtangankan tanpa persetujuan travel.</p>
-
-    <p><strong>9. Kebijakan Perilaku Penumpang</strong><br>
-    Penumpang wajib menjaga ketertiban dan mematuhi peraturan selama perjalanan. Travel berhak menurunkan penumpang yang mengganggu ketertiban atau melanggar aturan.</p>
-
-    <p><strong>10. Lain-lain</strong><br>
-    Perubahan syarat dan ketentuan dapat dilakukan sewaktu-waktu oleh pihak travel dengan pemberitahuan terlebih dahulu. Dengan menggunakan layanan travel, penumpang dianggap menyetujui seluruh syarat dan ketentuan ini.</p>
+    <p class="text-sm text-gray-600 mt-2">
+        Silakan lakukan pembayaran sebelum batas waktu yang ditentukan.
+    </p>
 </div>
+@endif
 
 
-            <button @click="showTerms = false"
-                class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label="Close modal">
-                ✕
-            </button>
-
-            <button @click="showTerms = false"
-                class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition">
-                Tutup
-            </button>
+        {{-- Modal Syarat & Ketentuan --}}
+        <div x-show="showTerms"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             @click.away="showTerms = false"
+             style="display: none;">
+            <div @click.stop class="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6 relative">
+                <h3 class="text-xl font-bold mb-4">Syarat & Ketentuan</h3>
+                <p class="text-sm text-gray-600">
+                    {{-- Isi syarat & ketentuan di sini --}}
+                </p>
+                <button @click="showTerms = false"
+                    class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 </div>
-    </div>
-</div>
+
+{{-- Script Snap Midtrans --}}
+<script src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script type="text/javascript">
+document.getElementById('pay-button').onclick = function(){
+    if (!document.getElementById('agreeCheckbox').checked) {
+        alert('Anda harus menyetujui Syarat & Ketentuan terlebih dahulu.');
+        return;
+    }
+    snap.pay('{{ $snapToken }}', {
+        onSuccess: function(result){
+            console.log('success', result);
+        },
+        onPending: function(result){
+            console.log('pending', result);
+        },
+        onError: function(result){
+            console.log('error', result);
+        }
+    });
+};
+</script>
 @endsection

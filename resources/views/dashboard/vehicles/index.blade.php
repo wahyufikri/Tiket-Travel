@@ -171,8 +171,11 @@
                                 <form action="/kendaraan/{{ $vehicle->id }}" method="post" class="d-inline">
                                     @method('DELETE')
                                     @csrf
-                                    <button class="fas fa-trash text-red-500 hover:text-red-700"
-                                        onclick="return confirm('yakin akan menghapus data ini?')"></button>
+                                   <button type="button"
+    class="fas fa-trash text-red-500 hover:text-red-700 btn-delete"
+    data-id="{{ $vehicle->id }}"></button>
+
+
                                 </form>
                             </td>
                         </tr>
@@ -182,5 +185,55 @@
         </div>
     </div>
     {{ $vehicles->links() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            let vehicleId = this.getAttribute('data-id');
+
+            Swal.fire({
+                title: 'Hapus Data Kendaraan?',
+                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#1f2937', // abu gelap biar modern
+                color: '#fff', // teks putih
+                confirmButtonColor: '#dc2626', // merah khas AWR
+                cancelButtonColor: '#6b7280', // abu untuk batal
+                confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus',
+                cancelButtonText: '<i class="fas fa-times"></i> Batal',
+                customClass: {
+                    popup: 'rounded-xl shadow-lg',
+                    confirmButton: 'px-4 py-2 rounded-lg font-semibold',
+                    cancelButton: 'px-4 py-2 rounded-lg font-semibold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/kendaraan/${vehicleId}`;
+
+                    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    let methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+
 
 @endsection

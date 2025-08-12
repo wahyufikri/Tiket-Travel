@@ -24,6 +24,10 @@ class Order extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    public function stops()
+    {
+        return $this->hasMany(Stop::class, 'order_id');
+    }
 
     // Relasi ke jadwal perjalanan
     public function schedule()

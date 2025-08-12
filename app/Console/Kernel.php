@@ -26,6 +26,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('orders:cancel-unpaid')->everyMinutes();
 
+        $schedule->command('send:travel-notification')->everyTenMinutes();
+
     }
 
     /**

@@ -42,23 +42,23 @@ class ScheduleService
             // }
 
             // 2. Validasi lokasi terakhir kendaraan
-            $lastVehicleSchedule = Schedule::where('vehicle_id', $vehicle->id)
-                ->where(function ($q) use ($data) {
-                    $q->where('departure_date', '<', $data['departure_date'])
-                        ->orWhere(function ($q2) use ($data) {
-                            $q2->where('departure_date', $data['departure_date'])
-                                ->where('departure_time', '<=', $data['departure_time']);
-                        });
-                })
-                ->orderByDesc('departure_date')
-                ->orderByDesc('departure_time')
-                ->first();
+            // $lastVehicleSchedule = Schedule::where('vehicle_id', $vehicle->id)
+            //     ->where(function ($q) use ($data) {
+            //         $q->where('departure_date', '<', $data['departure_date'])
+            //             ->orWhere(function ($q2) use ($data) {
+            //                 $q2->where('departure_date', $data['departure_date'])
+            //                     ->where('departure_time', '<=', $data['departure_time']);
+            //             });
+            //     })
+            //     ->orderByDesc('departure_date')
+            //     ->orderByDesc('departure_time')
+            //     ->first();
 
-            if ($lastVehicleSchedule && optional($lastVehicleSchedule->route)->destination !== $route->origin) {
-                throw ValidationException::withMessages([
-                    'vehicle_id' => 'Kendaraan tidak berada di titik asal.'
-                ]);
-            }
+            // if ($lastVehicleSchedule && optional($lastVehicleSchedule->route)->destination !== $route->origin) {
+            //     throw ValidationException::withMessages([
+            //         'vehicle_id' => 'Kendaraan tidak berada di titik asal.'
+            //     ]);
+            // }
 
             // 3. Hitung waktu tiba
             $arrivalTime = $departureDateTime->copy()->addMinutes($route->duration_minutes);
@@ -75,7 +75,7 @@ class ScheduleService
                 'status' => $data['status'] ?? 'active',
             ]);
 
-            
+
 
             // 6. Update lokasi driver dan kendaraan
             $driver->current_location = $route->origin;

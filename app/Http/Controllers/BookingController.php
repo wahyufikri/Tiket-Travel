@@ -14,6 +14,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+
+use Midtrans\Snap;
+
 
 class BookingController extends Controller
 {
@@ -156,46 +160,155 @@ $bookedSeats = Booking::join('route_stops as rs_from', 'bookings.from_stop_id', 
 
     public function checkout(Request $request)
 {
-
-
+    // Validasi awal
     if (!$request->has(['schedule_id', 'selected_seats'])) {
         return redirect()->route('public.home')->with('error', 'Data tidak lengkap.');
     }
 
     $trip = Schedule::with('route.stops', 'vehicle')->findOrFail($request->schedule_id);
+    $schedule = $trip;
     $selectedSeats = $request->selected_seats;
-    $pax = $request->pax;
     $passengerNames = $request->input('passenger_names', []);
-
-    $origin = $request->origin ?? session('origin');
-    $destination = $request->destination ?? session('destination');
-    $departure_segment = $request->departure_segment ?? session('departure_segment');
-    $arrival_segment = $request->arrival_segment ?? session('arrival_segment');
-
-
-
-    $stops = $trip->route->stops;
-
-    $originStop = $stops->firstWhere('stop_name', $origin);
-    $destinationStop = $stops->firstWhere('stop_name', $destination);
-
-    // ✅ FIX: Hitung harga dari stop, bukan dari request
     $price = session('price');
+    $pax = $request->pax;
+    $total = (int) ($price * $pax);
+    $origin = session('origin');
+    $destination = session('destination');
+    $departure_segment = session('departure_segment');
+    $arrival_segment = session('arrival_segment');
 
+    $originStop = $schedule->route->stops->firstWhere('stop_name', $origin);
+    $destinationStop = $schedule->route->stops->firstWhere('stop_name', $destination);
 
+    if (!$originStop || !$destinationStop) {
+        return back()->with('error', 'Data origin atau destination tidak valid.');
+    }
+
+    // Buat customer
+    $customer = Customer::firstOrCreate(
+        ['email' => session('customer.customer_email')],
+        [
+            'name' => session('customer.customer_name'),
+            'phone' => session('customer.customer_phone'),
+        ]
+    );
+
+    // Cek apakah sudah ada order yang sama
+    $order = Order::where('customer_id', $customer->id)
+        ->where('schedule_id', $schedule->id)
+        ->where('payment_status', 'belum')
+        ->latest()
+        ->first();
+
+    if (!$order) {
+        $order = Order::create([
+            'customer_id' => $customer->id,
+            'schedule_id' => $schedule->id,
+            'order_code' => 'TX-' . time(),
+            'seat_quantity' => $pax,
+            'total_price' => $total,
+            'payment_status' => 'belum',
+            'order_status' => 'menunggu',
+        ]);
+
+        // Buat passenger & booking
+        foreach ($request->selected_seats as $i => $seatNumber) {
+            $seat = Seat::where('vehicle_id', $schedule->vehicle_id)
+                ->where('seat_number', $seatNumber)
+                ->firstOrFail();
+
+            OrderPassenger::create([
+                'order_id' => $order->id,
+                'name' => $request->passenger_names[$i] ?? '-',
+                'seat_number' => $seatNumber,
+            ]);
+
+            Booking::create([
+                'order_id' => $order->id,
+                'schedule_id' => $schedule->id,
+                'seat_id' => $seat->id,
+                'from_stop_id' => $originStop->id,
+                'to_stop_id' => $destinationStop->id,
+                'passenger_name' => $request->passenger_names[$i] ?? '-',
+            ]);
+        }
+    }
+
+    // Midtrans Config
+    \Midtrans\Config::$serverKey = config('midtrans.server_key');
+    \Midtrans\Config::$isProduction = config('midtrans.is_production');
+    \Midtrans\Config::$isSanitized = config('midtrans.is_sanitized');
+    \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
+
+    // Gunakan token lama jika masih ada dan belum expired (misal 15 menit)
+    if ($order->snap_token && $order->created_at->gt(now()->subMinutes(15))) {
+        $snapToken = $order->snap_token;
+    } else {
+        $params = [
+            'enabled_payments' => ['bni_va'],
+            'transaction_details' => [
+                'order_id' => $order->order_code,
+                'gross_amount' => $total,
+            ],
+            'customer_details' => [
+                'first_name' => $customer->name,
+                'email' => $customer->email,
+                'phone' => $customer->phone,
+            ],
+            'metadata' => [
+                'order_id' => $order->id,
+            ],
+        ];
+
+        try {
+            $midtransResponse = \Midtrans\Snap::createTransaction($params);
+            $snapToken = $midtransResponse->token;
+
+            // Simpan token & response ke DB
+            $order->update([
+                'snap_token' => $snapToken,
+                'midtrans_response' => json_encode($midtransResponse)
+            ]);
+
+            Log::info('Midtrans Snap Token Generated', [
+                'order_id' => $order->order_code,
+                'snap_token' => $snapToken
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Midtrans Snap Error', ['message' => $e->getMessage()]);
+            return back()->with('error', 'Gagal membuat pembayaran. Coba lagi nanti.');
+        }
+    }
+
+    // Jika sandbox, buat link simulator untuk testing
+    $paymentSimulator = !config('midtrans.is_production')
+        ? "https://simulator.sandbox.midtrans.com/"
+        : null;
 
     return view('homepage.public.checkout', compact(
-        'trip',
-        'selectedSeats',
-        'pax',
-        'passengerNames',
+        'schedule',
         'price',
+        'pax',
+        'snapToken',
         'origin',
         'destination',
+        'total',
+        'order',
+        'trip',
         'departure_segment',
-        'arrival_segment'
+        'arrival_segment',
+        'selectedSeats',
+        'passengerNames',
+        'paymentSimulator'
     ));
 }
+
+
+
+
+
+
+
 
 
 public function process(Request $request)
@@ -207,10 +320,8 @@ public function process(Request $request)
         'selected_seats'   => 'required|array',
         'passenger_names'  => 'required|array',
     ]);
-
     // 2. Ambil data schedule + route stops
     $schedule = Schedule::with('route.stops')->findOrFail($request->schedule_id);
-
     // 3. Ambil data customer dari session
     $customer = Customer::firstOrCreate(
         ['email' => session('customer.customer_email')],
@@ -219,34 +330,27 @@ public function process(Request $request)
             'phone' => session('customer.customer_phone'),
         ]
     );
-
     // 4. Ambil origin & destination
     $origin = session('origin');
     $destination = session('destination');
-
     $originStop = $schedule->route->stops->firstWhere('stop_name', $origin);
     $destinationStop = $schedule->route->stops->firstWhere('stop_name', $destination);
-
     if (!$originStop || !$destinationStop) {
         return back()->with('error', 'Data origin atau destination tidak valid.');
     }
-
     // 5. Tentukan harga
     $customPrice = StopPrice::where('route_id', $schedule->route_id)
         ->where('from_stop_id', $originStop->id)
         ->where('to_stop_id', $destinationStop->id)
         ->value('price');
-
     if ($customPrice === null) {
         $customPrice = StopPrice::where('route_id', $schedule->route_id)
             ->where('from_stop_id', $destinationStop->id)
             ->where('to_stop_id', $originStop->id)
             ->value('price');
     }
-
     $price = $customPrice ?? $schedule->route->price;
     $total = $price * $request->pax;
-
     // 6. Validasi semua kursi
     $seatsData = [];
     foreach ($request->selected_seats as $index => $seatNumber) {
@@ -257,7 +361,6 @@ public function process(Request $request)
         if (!$seat) {
             return back()->with('error', "Kursi {$seatNumber} tidak ditemukan.");
         }
-
         // Cek apakah kursi ini sudah dibooking di segmen yang overlap
         $alreadyBooked = Booking::join('route_stops as rs_from', 'bookings.from_stop_id', '=', 'rs_from.id')
             ->join('route_stops as rs_to', 'bookings.to_stop_id', '=', 'rs_to.id')
@@ -271,17 +374,14 @@ public function process(Request $request)
                       ->where('rs_to.stop_order', '>', $originStop->stop_order);
             })
             ->exists();
-
         if ($alreadyBooked) {
             return back()->with('error', "Kursi {$seatNumber} sudah dibooking di segmen perjalanan ini.");
         }
-
         $seatsData[] = [
             'seat' => $seat,
             'name' => $request->passenger_names[$index] ?? '-',
         ];
     }
-
     // 7. Simpan order & booking dalam transaksi
     DB::beginTransaction();
     try {
@@ -295,11 +395,9 @@ public function process(Request $request)
             'payment_status' => 'belum',
             'order_status'   => 'menunggu',
         ]);
-
         if (!$order || !$order->id) {
             throw new \Exception("Gagal membuat order. Periksa model Order.");
         }
-
         // Simpan penumpang & booking
         foreach ($seatsData as $data) {
             OrderPassenger::create([
@@ -307,7 +405,6 @@ public function process(Request $request)
                 'name'        => $data['name'],
                 'seat_number' => $data['seat']->seat_number,
             ]);
-
             Booking::create([
                 'order_id'       => $order->id,
                 'schedule_id'    => $schedule->id,
@@ -317,10 +414,8 @@ public function process(Request $request)
                 'passenger_name' => $data['name'],
             ]);
         }
-
         // ⚠️ Tidak decrement available_seats karena per segmen
         DB::commit();
-
         return redirect()->route('checkout.payment', ['order' => $order->id]);
 
     } catch (\Exception $e) {

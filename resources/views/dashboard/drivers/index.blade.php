@@ -120,7 +120,7 @@
                             <td class="px-4 py-2">{{ $driver->name }}</td>
                             <td class="px-4 py-2">{{ $driver->phone_number }}</td>
                             <td class="px-4 py-2">{{ $driver->address }}</td>
-                            
+
                             <td class="px-4 py-2">
                                 @if ($driver->status == 'active')
                                     <span class="inline-block bg-green-500 text-white px-2 py-1 rounded-full text-xs">
@@ -140,8 +140,10 @@
                                 <form action="/sopir/{{ $driver->id }}" method="post" class="d-inline">
                                     @method('DELETE')
                                     @csrf
-                                    <button class="fas fa-trash text-red-500 hover:text-red-700"
-                                        onclick="return confirm('yakin akan menghapus data ini?')"></button>
+                                    <button type="button"
+    class="fas fa-trash text-red-500 hover:text-red-700 btn-delete"
+    data-id="{{ $driver->id }}"></button>
+
                                 </form>
                             </td>
                         </tr>
@@ -151,5 +153,54 @@
         </div>
     </div>
     {{ $drivers->links() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            let driverId = this.getAttribute('data-id');
+
+            Swal.fire({
+                title: 'Hapus Data Sopir?',
+                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#1f2937', // gelap
+                color: '#fff',
+                confirmButtonColor: '#dc2626', // merah AWR
+                cancelButtonColor: '#6b7280', // abu netral
+                confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus',
+                cancelButtonText: '<i class="fas fa-times"></i> Batal',
+                customClass: {
+                    popup: 'rounded-xl shadow-lg animate__animated animate__shakeX',
+                    confirmButton: 'px-4 py-2 rounded-lg font-semibold',
+                    cancelButton: 'px-4 py-2 rounded-lg font-semibold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/sopir/${driverId}`;
+
+                    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    let methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 
 @endsection

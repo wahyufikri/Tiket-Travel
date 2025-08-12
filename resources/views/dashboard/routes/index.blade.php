@@ -94,7 +94,7 @@
                             <td class="px-4 py-2">{{ $index + 1 }}</td>
                             <td class="px-4 py-2">{{ $route->origin }}</td>
                             <td class="px-4 py-2">{{ $route->destination }}</td>
-                           
+
                             <td class="px-4 py-2">{{ $route->duration_minutes }} menit</td>
                             <td class="px-4 py-2 flex space-x-2">
                                 <a href="/rute/{{ $route->id }}/edit" class="text-yellow-500 hover:text-yellow-700">
@@ -103,8 +103,10 @@
                                 <form action="/rute/{{ $route->id }}" method="post" class="d-inline">
                                     @method('DELETE')
                                     @csrf
-                                    <button class="fas fa-trash text-red-500 hover:text-red-700"
-                                            onclick="return confirm('yakin akan menghapus data ini?')"></button>
+                                    <button type="button"
+    class="fas fa-trash text-red-500 hover:text-red-700 btn-delete"
+    data-id="{{ $route->id }}"></button>
+
                                 </form>
                             </td>
                         </tr>
@@ -115,4 +117,53 @@
 
         {{ $routes->links() }}
     </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            let routeId = this.getAttribute('data-id');
+
+            Swal.fire({
+                title: 'Hapus Data Rute?',
+                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#1f2937', // gelap
+                color: '#fff',
+                confirmButtonColor: '#dc2626', // merah AWR
+                cancelButtonColor: '#6b7280', // abu netral
+                confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus',
+                cancelButtonText: '<i class="fas fa-times"></i> Batal',
+                customClass: {
+                    popup: 'rounded-xl shadow-lg animate__animated animate__shakeX',
+                    confirmButton: 'px-4 py-2 rounded-lg font-semibold',
+                    cancelButton: 'px-4 py-2 rounded-lg font-semibold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/rute/${routeId}`;
+
+                    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    let methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 @endsection

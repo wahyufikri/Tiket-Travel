@@ -6,6 +6,8 @@ use App\Models\Transaction;
 use App\Models\Order;
 use App\Models\TransactionCategory;
 use App\Models\PaymentMethod;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -172,4 +174,24 @@ class TransactionController extends Controller
 
         return back()->with('success', 'Metode pembayaran berhasil dihapus.');
     }
+
+    public function exportPdf($type, $month, $year)
+{
+    $transactions = Transaction::with('category')
+        ->where('type', $type)
+        ->whereMonth('transaction_date', $month)
+        ->whereYear('transaction_date', $year)
+        ->orderBy('transaction_date', 'asc')
+        ->get();
+
+    $title = ucfirst($type) . ' Bulan ' . Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y');
+
+    $pdf = Pdf::loadView('dashboard.transactions.export', [
+        'transactions' => $transactions,
+        'title' => $title,
+        'type' => $type
+    ])->setPaper('a4', 'portrait');
+
+    return $pdf->download("{$type}_{$month}_{$year}.pdf");
+}
 }

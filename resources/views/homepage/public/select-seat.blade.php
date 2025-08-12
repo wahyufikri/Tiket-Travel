@@ -87,7 +87,7 @@
         🚍 Pilih Kursi
     </h2>
 
-    <form x-data="seatFormComponent()" id="seatForm" method="POST" action="{{ route('checkout.show') }}"
+    <form x-data="seatFormComponent()" id="seatForm" method="POST" action="{{ route('checkout') }}"
           @submit="handleSubmit">
         @csrf
 
