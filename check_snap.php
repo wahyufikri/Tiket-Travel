@@ -2,7 +2,7 @@
 require_once 'vendor/autoload.php';
 
 // Konfigurasi Midtrans
-\Midtrans\Config::$serverKey = 'Mid-server-PmfVK1hnPwApE8EOwOhJNPDh';
+\Midtrans\Config::$serverKey = '';
 \Midtrans\Config::$isProduction = false;
 \Midtrans\Config::$isSanitized = true;
 \Midtrans\Config::$is3ds = true;

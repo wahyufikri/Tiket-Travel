@@ -1,6 +1,6 @@
 <?php
 
-$serverKey = 'Mid-server-PmfVK1hnPwApE8EOwOhJNPDh'; // ambil dari .env
+$serverKey = ''; // ambil dari .env
 
 $apiUrl = 'https://api.sandbox.midtrans.com/v2/charge';
 
