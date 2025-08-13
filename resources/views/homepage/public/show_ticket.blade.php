@@ -46,11 +46,10 @@
             <div>
                 <h3 class="text-lg font-semibold text-gray-800 border-b pb-1 mb-2">Pembayaran</h3>
                 <p><span class="font-medium">Harga Total:</span> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
-                <p><span class="font-medium">Metode:</span> {{ $order->payment->payment_method ?? '-' }}</p>
                 <p><span class="font-medium">Status:</span>
-                    @if($order->payment->status === 'terverifikasi')
+                    @if($order->payment_status === 'lunas')
                         <span class="text-green-600 font-semibold">Dikonfirmasi</span>
-                    @elseif($order->payment->status === 'menunggu')
+                    @elseif($order->payment_status === 'belum')
                         <span class="text-yellow-600 font-semibold">Menunggu Verifikasi</span>
                     @else
                         <span class="text-red-600 font-semibold">Belum Bayar</span>

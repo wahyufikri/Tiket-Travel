@@ -16,16 +16,28 @@ class PublicScheduleController extends Controller
     // Ambil semua route_stops yang sudah urut berdasarkan sequence
     $routeStops = Stop::with('route')->orderBy('route_id')->orderBy('stop_order')->get();
 
-    // Ambil data asal yang unik berdasarkan kombinasi nama dan route
+    // Ambil data asal dan tujuan yang unik berdasarkan kombinasi nama dan route
     $origins = $routeStops->unique(fn ($item) => $item->route_id . '-' . $item->stop_name);
     $destinations = $routeStops->unique(fn ($item) => $item->route_id . '-' . $item->stop_name);
-    $orders = Order::latest()->get();
+
+    // Ambil pesanan terakhir sesuai customer yang login
+    $orders = collect(); // default kosong
+
+    if (auth('customer')->check()) {
+        $orders = Order::with('passengers')
+            ->where('customer_id', auth('customer')->id()) // sesuaikan nama kolom foreign key
+            ->latest()
+            ->get();
+    }
 
     // Kosongkan schedules awal, nanti akan terisi saat pencarian
     $schedules = collect();
 
-    return view('homepage.public.home', compact('routeStops', 'origins', 'schedules','destinations','orders'));
+    return view('homepage.public.home', compact(
+        'routeStops', 'origins', 'schedules', 'destinations', 'orders'
+    ));
 }
+
 
 
 

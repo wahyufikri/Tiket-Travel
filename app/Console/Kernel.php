@@ -28,6 +28,14 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('send:travel-notification')->everyTenMinutes();
 
+        $schedule->command('orders:expire')->everyMinute();
+        $schedule->call(function () {
+        \App\Models\Order::where('payment_status', 'belum')
+            ->where('order_status', 'menunggu')
+            ->where('expired_at', '<', now())
+            ->update(['order_status' => 'batal']);
+    })->everyMinute();
+
     }
 
     /**

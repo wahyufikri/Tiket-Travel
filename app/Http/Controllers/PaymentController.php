@@ -98,59 +98,28 @@ class PaymentController extends Controller
 
 
 
-    public function success($orderId)
+    public function success($orderCode)
 {
-    $order = Order::with(['payment', 'schedule.route', 'customer', 'passengers'])->findOrFail($orderId);
-    $origin = $request->origin ?? session('origin');
-$destination = $request->destination ?? session('destination');
-$departure_segment = session('departure_segment');
-$arrival_segment = session('arrival_segment');
-$phone = session('customer.customer_phone');
-$email = session('customer.customer_email');
+    $order = Order::with(['payment', 'schedule.route', 'customer', 'passengers'])
+        ->where('order_code', $orderCode)
+        ->firstOrFail();
 
-    // Ambil penumpang pertama untuk ditampilkan
+    $origin = session('origin');
+    $destination = session('destination');
+    $departure_segment = session('departure_segment');
+    $arrival_segment = session('arrival_segment');
+    $phone = session('customer.customer_phone');
+    $email = session('customer.customer_email');
+
     $passenger = $order->passengers->first();
 
-    return view('homepage.public.final', compact('order', 'passenger','origin', 'destination','departure_segment', 'arrival_segment', 'phone', 'email'));
+    return view('homepage.public.final', compact(
+        'order', 'passenger', 'origin', 'destination',
+        'departure_segment', 'arrival_segment', 'phone', 'email'
+    ));
 }
 
-public function testSnap()
-{
-    // Konfigurasi Midtrans
-    Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-    Config::$isProduction = false; // Sandbox
-    Config::$isSanitized = true;
-    Config::$is3ds = true;
 
-    // Data transaksi
-    $params = [
-        'transaction_details' => [
-            'order_id' => 'TEST-' . time(),
-            'gross_amount' => 10000, // HARUS integer, tanpa titik/koma
-        ],
-        'customer_details' => [
-            'first_name' => 'Budi',
-            'last_name' => 'Setiawan',
-            'email' => 'budi@example.com',
-            'phone' => '081234567890',
-        ],
-        'item_details' => [
-            [
-                'id' => 'item1',
-                'price' => 10000,
-                'quantity' => 1,
-                'name' => 'Kamera Sewa'
-            ]
-        ],
-        'credit_card' => [
-            'secure' => true
-        ]
-    ];
 
-    // Buat Snap Token
-    $snapToken = Snap::getSnapToken($params);
-
-    return view('test-snap', compact('snapToken'));
-}
 
 }

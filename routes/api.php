@@ -1,5 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MidtransWebhookController;
 
-// Temp kosong dulu, nanti bisa diisi route API di sini
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);

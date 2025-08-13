@@ -56,10 +56,6 @@
                     <span class="block font-medium text-gray-700">Nomor Order:</span>
                     <span>{{ $order->order_code }}</span>
                 </div>
-                <div>
-                    <span class="block font-medium text-gray-700">Metode Pembayaran:</span>
-                    <span>{{ $order->payment->payment_method }}</span>
-                </div>
             </div>
 
             {{-- Total Bayar --}}
@@ -71,9 +67,9 @@
             {{-- Status --}}
             <div>
                 <span class="block font-medium text-gray-700">Status:</span>
-                @if ($order->payment->status === 'terverifikasi')
+                @if ($order->payment_status === 'lunas')
                     <span class="text-green-600 font-semibold">✅ Dikonfirmasi</span>
-                @elseif($order->payment->status === 'menunggu')
+                @elseif($order->payment_status === 'belum')
                     <span class="text-yellow-600 font-semibold">⏳ Menunggu Verifikasi</span>
                 @else
                     <span class="text-red-600 font-semibold">❌ Ditolak</span>
@@ -81,10 +77,10 @@
             </div>
 
             {{-- Nomor WhatsApp --}}
-            <div class="text-sm text-gray-600 border-t pt-3">
-                Notifikasi WhatsApp dengan e-tiket telah dikirim ke:
-                <span class="font-medium">{{ $order->customer->phone }}</span>
-            </div>
+            {{-- <div class="text-sm text-gray-600 border-t pt-3">
+                Pengingat Jadwal Keberangkatan akan dikirim ke:
+                <span class="font-medium">{{ $order->customer->phone }}</span> pada 2 jam sebelum keberangkatan.
+            </div> --}}
 
         </div>
     </div>

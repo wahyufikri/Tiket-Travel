@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardAdminController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ManajemenAdminController;
+use App\Http\Controllers\MidtransLogController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
@@ -111,9 +112,12 @@ Route::prefix('keuangan')->name('keuangan.')->group(function () {
 
 
 Route::post('/checkout', [BookingController::class, 'checkout'])->name('checkout');
+Route::get('/checkout/pay/{order}', [BookingController::class, 'pay'])->name('checkout.pay');
+
+
 
 // Callback dari Midtrans (biar status order otomatis update)
-Route::post('/payment/callback', [MidtransWebhookController::class, 'handle']);
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);
 
 // Optional: halaman sukses pembayaran
 Route::get('/payment/success', function () {
@@ -171,63 +175,28 @@ Route::get('/get-price', function (Illuminate\Http\Request $request) {
 });
 
 
-Route::get('/test-va-channels', [MidtransWebhookController::class, 'checkAllVaChannels']);
+
+Route::get('/midtrans/logs', [MidtransLogController::class, 'index'])->name('midtrans.logs');
 
 
-Route::get('/test-bri', function () {
-    \Midtrans\Config::$serverKey = config('midtrans.server_key');
-    \Midtrans\Config::$isProduction = false;
 
-    $params = [
-        'payment_type' => 'bank_transfer',
-        'transaction_details' => [
-            'order_id' => 'TEST-BRI-' . uniqid(),
-            'gross_amount' => 10000,
-        ],
-        'bank_transfer' => [
-            'bank' => 'bri'
-        ]
-    ];
-
-    try {
-        $charge = \Midtrans\CoreApi::charge($params);
-        dd($charge);
-    } catch (\Exception $e) {
-        dd($e->getMessage());
-    }
-});
 
 Route::get('/get-seats/{schedule}', [OrderController::class, 'getSeats']);
 
 Route::get('/keuangan/export/{type}/{month}/{year}', [TransactionController::class, 'exportPdf'])
     ->name('keuangan.export.pdf');
+ // routes/web.php
+Route::get('/checkout/success/{order_code}', [PaymentController::class, 'success'])
+    ->name('checkout.success');
 
 
-Route::get('/payment', function () {
-    \Midtrans\Config::$serverKey = config('midtrans.server_key');
-    \Midtrans\Config::$isProduction = false; // Sandbox
-    \Midtrans\Config::$isSanitized = true;
-    \Midtrans\Config::$is3ds = true;
+Route::get('/tentang-kami', function () {
+    return view('homepage.public.about');
+})->name('about');
 
-    $params = [
-        'transaction_details' => [
-            'order_id' => rand(),
-            'gross_amount' => 5104000, // contoh harga
-        ],
-        'enabled_payments' => [
-            'bca_va', // BCA Virtual Account
-            'gopay',  // GoPay
-        ],
-        'customer_details' => [
-            'first_name' => 'Budi',
-            'last_name' => 'Santoso',
-            'email' => 'budi@example.com',
-            'phone' => '081234567890',
-        ],
-    ];
+// web.php
+Route::post('/payment/snap-token/{order}', [BookingController::class, 'getSnapToken'])->name('payment.snap-token');
 
-    $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-    return view('payment', compact('snapToken'));
-});
+
 

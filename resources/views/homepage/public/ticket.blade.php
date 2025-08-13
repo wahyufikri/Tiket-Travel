@@ -72,9 +72,9 @@
         <div class="info">
             <p><strong>Harga:</strong> Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
             <p><strong>Status Pembayaran:</strong>
-                @if($order->payment->status === 'terverifikasi')
+                @if($order->payment_status === 'lunas')
                     <span class="status-paid">Dikonfirmasi</span>
-                @elseif($order->payment->status === 'menunggu')
+                @elseif($order->payment_status === 'belum')
                     <span class="status-pending">Menunggu Verifikasi</span>
                 @else
                     <span class="status-unpaid">Belum Bayar</span>

@@ -63,17 +63,6 @@
                 <input type="hidden" name="selected_seats[]" value="{{ $seat }}">
             @endforeach
 
-            <label class="flex items-center space-x-3 mt-4">
-                <input type="checkbox" required class="form-checkbox h-5 w-5 text-red-600" id="agreeCheckbox">
-                <span class="text-gray-700 text-sm select-none">
-                    Saya telah membaca dan menyetujui
-                    <a href="#" @click.prevent="showTerms = true"
-                       class="text-red-600 underline hover:text-red-700 cursor-pointer">
-                        Syarat & Ketentuan
-                    </a>
-                </span>
-            </label>
-
             <button type="button" id="pay-button"
                 class="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-150">
                 Lanjutkan Pembayaran
@@ -81,77 +70,51 @@
         </form>
 
         @if(!empty($vaNumber))
-    <p>Nomor VA BRI: <strong>{{ $vaNumber }}</strong></p>
-@endif
+            <p>Nomor VA BRI: <strong>{{ $vaNumber }}</strong></p>
+        @endif
+
         {{-- Tampilkan VA jika tersedia --}}
-@if(!empty($vaNumber) && !empty($bank))
-<div class="mt-6 p-4 bg-green-50 border border-green-300 rounded-lg">
-    <p class="font-semibold text-green-700 mb-1">
-        Nomor Virtual Account ({{ strtoupper($bank) }})
-    </p>
-    <p class="text-lg font-mono mb-3">{{ $vaNumber }}</p>
-
-    {{-- Link ke simulator Midtrans --}}
-    @if(app()->environment('local') || app()->environment('sandbox'))
-        <a href="https://simulator.sandbox.midtrans.com/{{ strtolower($bank) }}/va/index"
-           target="_blank"
-           class="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded shadow">
-           Buka Simulator Pembayaran
-        </a>
-    @endif
-
-    <p class="text-sm text-gray-600 mt-2">
-        Silakan lakukan pembayaran sebelum batas waktu yang ditentukan.
-    </p>
-</div>
-@endif
-
-
-        {{-- Modal Syarat & Ketentuan --}}
-        <div x-show="showTerms"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-             @click.away="showTerms = false"
-             style="display: none;">
-            <div @click.stop class="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6 relative">
-                <h3 class="text-xl font-bold mb-4">Syarat & Ketentuan</h3>
-                <p class="text-sm text-gray-600">
-                    {{-- Isi syarat & ketentuan di sini --}}
+        @if(!empty($vaNumber) && !empty($bank))
+            <div class="mt-6 p-4 bg-green-50 border border-green-300 rounded-lg">
+                <p class="font-semibold text-green-700 mb-1">
+                    Nomor Virtual Account ({{ strtoupper($bank) }})
                 </p>
-                <button @click="showTerms = false"
-                    class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow transition">
-                    Tutup
-                </button>
+                <p class="text-lg font-mono mb-3">{{ $vaNumber }}</p>
+
+                {{-- Link ke simulator Midtrans --}}
+                @if(app()->environment('local') || app()->environment('sandbox'))
+                    <a href="https://simulator.sandbox.midtrans.com/{{ strtolower($bank) }}/va/index"
+                       target="_blank"
+                       class="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded shadow">
+                       Buka Simulator Pembayaran
+                    </a>
+                @endif
+
+                <p class="text-sm text-gray-600 mt-2">
+                    Silakan lakukan pembayaran sebelum batas waktu yang ditentukan.
+                </p>
             </div>
-        </div>
+        @endif
+
     </div>
 </div>
 
-{{-- Script Snap Midtrans --}}
 <script src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script type="text/javascript">
 document.getElementById('pay-button').onclick = function(){
-    if (!document.getElementById('agreeCheckbox').checked) {
-        alert('Anda harus menyetujui Syarat & Ketentuan terlebih dahulu.');
-        return;
-    }
     snap.pay('{{ $snapToken }}', {
-        onSuccess: function(result){
-            console.log('success', result);
+        onSuccess: function(result) {
+            window.location.href = "/checkout/success/" + result.order_id;
         },
-        onPending: function(result){
+        onPending: function(result) {
             console.log('pending', result);
         },
-        onError: function(result){
+        onError: function(result) {
             console.log('error', result);
         }
     });
 };
 </script>
+
 @endsection

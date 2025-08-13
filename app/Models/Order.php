@@ -17,6 +17,11 @@ class Order extends Model
         'total_price',
         'payment_status',
         'order_status',
+        'midtrans_response',
+        'expired_at',
+    ];
+    protected $casts = [
+        'expired_at' => 'datetime',
     ];
 
     // Relasi ke customer (pemesan)

@@ -145,15 +145,6 @@
             </svg>
             <span>Pemesanan</span>
         </a>
-        <a href="{{ url('/pembayaran') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
-            <!-- Credit Card Icon -->
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M4 6h16M4 10h16M4 14h7m-7 4h16a2 2 0 002-2V8a2 2 0 00-2-2H4"></path>
-            </svg>
-            <span>Pembayaran</span>
-        </a>
         <a href="{{ url('/keuangan') }}" class="flex items-center space-x-2 py-1.5 px-4 text-sm rounded hover:bg-[#c34f4f]">
             <!-- Money Icon -->
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"

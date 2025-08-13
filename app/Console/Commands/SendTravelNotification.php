@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class SendTravelNotification extends Command
 {
-    protected $signature = 'send:travel-notification';
+    protected $signature = 'send:travel-notification {--test : Mode uji kirim semua booking tanpa cek waktu keberangkatan}';
     protected $description = 'Kirim notifikasi WA otomatis ke pelanggan menjelang jadwal keberangkatan';
 
     protected $fonnte;
@@ -22,21 +22,26 @@ class SendTravelNotification extends Command
 
     public function handle()
     {
-        $now = Carbon::now();
+        $isTestMode = $this->option('test');
 
-        $targetTimeStart = $now->copy()->subHour();
-        $targetTimeEnd = $now->copy()->addHour();
+        if ($isTestMode) {
+            $this->info("🔹 Mode TEST aktif - semua booking akan dikirim WA tanpa cek waktu keberangkatan.");
+            $bookings = Booking::with(['schedule', 'order.customer'])->get();
+        } else {
+            $now = Carbon::now();
+            $targetTimeStart = $now->copy()->addHours(2)->startOfMinute();
+            $targetTimeEnd = $now->copy()->addHours(2)->endOfMinute();
 
-        $bookings = Booking::whereHas('schedule', function ($query) use ($targetTimeStart, $targetTimeEnd) {
-            // gabungkan tanggal dan waktu jadi datetime
-            $query->whereRaw("STR_TO_DATE(CONCAT(departure_date, ' ', departure_time), '%Y-%m-%d %H:%i:%s') BETWEEN ? AND ?", [
-                $targetTimeStart->format('Y-m-d H:i:s'),
-                $targetTimeEnd->format('Y-m-d H:i:s')
-            ]);
-        })->with('schedule')->get();
+            $bookings = Booking::whereHas('schedule', function ($query) use ($targetTimeStart, $targetTimeEnd) {
+                $query->whereRaw(
+                    "STR_TO_DATE(CONCAT(departure_date, ' ', departure_time), '%Y-%m-%d %H:%i:%s') BETWEEN ? AND ?",
+                    [$targetTimeStart->format('Y-m-d H:i:s'), $targetTimeEnd->format('Y-m-d H:i:s')]
+                );
+            })->with(['schedule', 'order.customer'])->get();
+        }
 
         if ($bookings->isEmpty()) {
-            $this->info("Tidak ada booking dengan jadwal keberangkatan dalam rentang waktu yang ditentukan.");
+            $this->info("Tidak ada booking yang sesuai.");
             return;
         }
 
@@ -44,13 +49,14 @@ class SendTravelNotification extends Command
             $departureDate = $booking->schedule->departure_date;
             $departureTime = $booking->schedule->departure_time;
 
-            // Jika departure_time ternyata datetime lengkap, ambil hanya waktu HH:mm:ss nya saja:
-            if (strlen($departureTime) > 8) {
-                $departureTime = date('H:i:s', strtotime($departureTime));
+            // Cegah double tanggal
+            if (strpos($departureTime, ' ') !== false) {
+                $departureDateTime = Carbon::parse($departureTime);
+            } else {
+                $departureDateTime = Carbon::parse("$departureDate $departureTime");
             }
 
-            $departureDateTime = $departureDate . ' ' . $departureTime;
-            $departureTimeFormatted = Carbon::parse($departureDateTime)->format('d-m-Y H:i');
+            $departureTimeFormatted = $departureDateTime->format('d-m-Y H:i');
 
             $passengerName = $booking->passenger_name ?? 'Pelanggan';
             $phone = $booking->order->customer->phone ?? null;
@@ -60,8 +66,8 @@ class SendTravelNotification extends Command
                 continue;
             }
 
-            // Pastikan nomor dalam format internasional
-            $phone = preg_replace('/[^0-9]/', '', $phone); // hilangkan karakter non-digit
+            // Format nomor WA internasional
+            $phone = preg_replace('/[^0-9]/', '', $phone);
             if (substr($phone, 0, 1) === '0') {
                 $phone = '62' . substr($phone, 1);
             }
