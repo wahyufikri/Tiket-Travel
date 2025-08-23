@@ -153,7 +153,7 @@ Route::post('/profil/update-password', [ProfilController::class, 'updatePassword
 Route::middleware(['auth:customer'])->group(function () {
     Route::get('/profile', [CustomerProfilController::class, 'index'])->name('customer.profile');
     Route::get('/profile/edit', [CustomerProfilController::class, 'edit'])->name('customer.editProfile');
-    Route::post('/profile/update', [CustomerProfilController::class, 'update'])->name('customer.updateProfile');
+    Route::post('/profile/update', [CustomerProfilController::class, 'updateProfile'])->name('customer.updateProfile');
     Route::post('/logout', [CustomerProfilController::class, 'logout'])->name('customer.logout');
 });
 
@@ -196,6 +196,10 @@ Route::get('/tentang-kami', function () {
 
 // web.php
 Route::post('/payment/snap-token/{order}', [BookingController::class, 'getSnapToken'])->name('payment.snap-token');
+
+Route::get('/order/cetak', [OrderController::class, 'cetak'])->name('pemesanan.cetak');
+
+Route::get('/cek-reservasi', [PublicScheduleController::class, 'index'])->name('cek-reservasi');
 
 
 

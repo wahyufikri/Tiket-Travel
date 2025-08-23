@@ -171,23 +171,39 @@
     </div>
 
     {{-- Modal Detail --}}
-    <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Detail Transaksi</h3>
-                <button onclick="closeTransactionModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
-            </div>
-            <div id="transactionDetail" class="space-y-2">
-                <p><strong>Tanggal:</strong> <span id="detailDate"></span></p>
-                <p><strong>Judul:</strong> <span id="detailTitle"></span></p>
-                <p><strong>Jenis:</strong> <span id="detailType"></span></p>
-                <p><strong>Kategori:</strong> <span id="detailCategory"></span></p>
-                <p><strong>Nominal:</strong> Rp<span id="detailAmount"></span></p>
-                <p><strong>Metode:</strong> <span id="detailMethod"></span></p>
-                <p><strong>Keterangan:</strong> <span id="detailDescription"></span></p>
-            </div>
+    <div id="transactionModal"
+    class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity duration-300 ease-out">
+
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 transform scale-95 transition-transform duration-300 ease-out">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+            <h3 class="text-xl font-bold text-gray-800">📄 Detail Transaksi</h3>
+            <button onclick="closeTransactionModal()"
+                class="text-gray-400 hover:text-red-500 transition-colors text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- Konten -->
+        <div id="transactionDetail" class="space-y-3 text-gray-700">
+            <p><span class="font-semibold">📅 Tanggal:</span> <span id="detailDate" class="ml-1 text-gray-600"></span></p>
+            <p><span class="font-semibold">📝 Judul:</span> <span id="detailTitle" class="ml-1 text-gray-600"></span></p>
+            <p><span class="font-semibold">📂 Jenis:</span> <span id="detailType" class="ml-1 text-gray-600"></span></p>
+            <p><span class="font-semibold">🏷 Kategori:</span> <span id="detailCategory" class="ml-1 text-gray-600"></span></p>
+            <p><span class="font-semibold">💰 Nominal:</span> <span class="ml-1 font-bold text-green-600">Rp<span id="detailAmount"></span></span></p>
+            <p><span class="font-semibold">💳 Metode:</span> <span id="detailMethod" class="ml-1 text-gray-600"></span></p>
+            <p><span class="font-semibold">🗒 Keterangan:</span> <span id="detailDescription" class="ml-1 text-gray-600"></span></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 flex justify-end">
+            <button onclick="closeTransactionModal()"
+                class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300 transition">
+                Tutup
+            </button>
         </div>
     </div>
+</div>
+
 </div>
 
 <script>

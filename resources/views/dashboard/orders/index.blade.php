@@ -43,7 +43,7 @@
                                 d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 3a7.5 7.5 0 006.15 13.65z" />
                         </svg>
                     </span>
-                    <input type="text" name="search" placeholder="Cari order..." value="{{ request('search') }}"
+                    <input type="text" name="search" placeholder="Cari Kode Order..." value="{{ request('search') }}"
                         class="bg-white w-full pl-10 pr-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
                 </div>
                 <button type="submit"
@@ -53,17 +53,68 @@
             </form>
         </div>
 
+        <div class="flex items-center justify-between mb-4">
+    <form action="{{ route('pemesanan.cetak') }}" method="GET" target="_blank"
+        class="flex items-center gap-3 bg-white p-4 rounded-lg shadow-md">
+
+        {{-- Pilih Filter --}}
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Laporan</label>
+            <select name="filter" id="filterSelect"
+                class="border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <option value="harian">Per Hari</option>
+                <option value="bulanan">Per Bulan</option>
+                <option value="tahunan">Per Tahun</option>
+            </select>
+        </div>
+
+        {{-- Input Harian --}}
+        <div id="inputHarian" class="hidden">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal</label>
+            <input type="date" name="tanggal"
+                class="border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+        </div>
+
+        {{-- Input Bulanan --}}
+        <div id="inputBulanan" class="hidden">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Bulan</label>
+            <input type="month" name="bulan"
+                class="border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+        </div>
+
+        {{-- Input Tahunan --}}
+        <div id="inputTahunan" class="hidden">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun</label>
+            <input type="number" name="tahun" placeholder="YYYY"
+                class="border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+        </div>
+
+        {{-- Tombol Cetak --}}
+        <div class="flex items-end">
+            <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition-all duration-200 flex items-center gap-2">
+                <i class="fas fa-print"></i> Cetak Laporan
+            </button>
+        </div>
+    </form>
+</div>
+
+
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <table class="min-w-full text-sm text-left">
                 <thead class="bg-gray-100 text-gray-700 uppercase">
                     <tr>
                         <th class="px-4 py-2">No</th>
                         <th class="px-4 py-2">Kode Order</th>
+
+                        <th class="px-4 py-2">Rute</th>
                         <th class="px-4 py-2">Nama Kursi</th>
-                        <th class="px-4 py-2">Jumlah Kursi</th>
+                        <th class="px-4 py-2">Jumlah Tiket</th>
                         <th class="px-4 py-2">Total</th>
                         <th class="px-4 py-2">Status Order</th>
                         <th class="px-4 py-2">Status Bayar</th>
+                        <th class="px-4 py-2">Diverifikasi Oleh</th>
+
                         <th class="px-4 py-2">Aksi</th>
                     </tr>
                 </thead>
@@ -72,6 +123,11 @@
                         <tr class="border-b hover:bg-gray-50">
                             <td class="px-4 py-2">{{ $index + $orders->firstItem() }}</td>
                             <td class="px-4 py-2">{{ $order->order_code }}</td>
+
+                            <td class="px-4 py-2">
+    {{ optional($order->booking->fromStop)->stop_name }} -> {{ optional($order->booking->toStop)->stop_name }}
+</td>
+
                             <td class="px-4 py-2">
                                 @foreach ($order->passengers as $p)
                                     {{ $p->seat_number }}{{ !$loop->last ? ', ' : '' }}
@@ -126,10 +182,18 @@
                                             class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">{{ $order->payment_status }}</span>
                                 @endswitch
                             </td>
+<td class="px-4 py-2">{{ $order->verifiedBy ? $order->verifiedBy->name : '-' }}</td>
+
+
                             <td class="px-4 py-2 flex space-x-2">
                                 <a href="/pemesanan/{{ $order->id }}/edit" class="text-yellow-500 hover:text-yellow-700">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <button type="button"
+        class="text-blue-500 hover:text-blue-700 btn-detail"
+        data-order="{{ $order->toJson() }}">
+        <i class="fas fa-eye"></i>
+    </button>
                                 <form action="/pemesanan/{{ $order->id }}" method="POST">
                                     @csrf
                                     @method('DELETE')
@@ -146,6 +210,37 @@
                         @endforelse
                     </tbody>
                 </table>
+                <!-- Modal Detail -->
+<!-- Modal Detail -->
+<div id="detailModal"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative transform scale-95 transition-transform duration-300">
+
+        <!-- Tombol Close -->
+        <button id="closeModal"
+                class="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="border-b pb-3 mb-4 flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-ticket-alt text-red-600"></i>
+                Detail Pemesanan
+            </h2>
+        </div>
+
+        <!-- Konten -->
+        <div id="modalContent" class="space-y-3 text-gray-700">
+            {{-- Isi detail akan diisi lewat JS --}}
+        </div>
+
+        <!-- Footer -->
+
+    </div>
+</div>
+
+
             </div>
 
             <div class="mt-4">
@@ -198,5 +293,62 @@
             });
         });
     });
-});</script>
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const filterSelect = document.getElementById('filterSelect');
+    const inputHarian = document.getElementById('inputHarian');
+    const inputBulanan = document.getElementById('inputBulanan');
+    const inputTahunan = document.getElementById('inputTahunan');
+
+    function updateInputs() {
+        inputHarian.classList.add('hidden');
+        inputBulanan.classList.add('hidden');
+        inputTahunan.classList.add('hidden');
+
+        if (filterSelect.value === 'harian') {
+            inputHarian.classList.remove('hidden');
+        } else if (filterSelect.value === 'bulanan') {
+            inputBulanan.classList.remove('hidden');
+        } else if (filterSelect.value === 'tahunan') {
+            inputTahunan.classList.remove('hidden');
+        }
+    }
+
+    filterSelect.addEventListener('change', updateInputs);
+    updateInputs(); // Set default saat load
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const detailModal = document.getElementById('detailModal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModal = document.getElementById('closeModal');
+
+    document.querySelectorAll('.btn-detail').forEach(button => {
+        button.addEventListener('click', function () {
+            let order = JSON.parse(this.getAttribute('data-order'));
+
+            // isi detail ke modal
+            modalContent.innerHTML = `
+                <p><strong>Kode Order:</strong> ${order.order_code}</p>
+                <p><strong>Nama Pemesan:</strong> ${order.customer.name}</p>
+                <p><strong>No Telp:</strong> ${order.customer.phone}</p>
+                <p><strong>Jumlah Tiket:</strong> ${order.seat_quantity}</p>
+                <p><strong>Total Harga:</strong> Rp${order.total_price.toLocaleString()}</p>
+                <p><strong>Status Order:</strong> ${order.order_status}</p>
+                <p><strong>Status Bayar:</strong> ${order.payment_status}</p>
+                <p><strong>Status Bayar:</strong> ${order.payment_status}</p>
+            `;
+
+            detailModal.classList.remove('hidden');
+            detailModal.classList.add('flex');
+        });
+    });
+
+    closeModal.addEventListener('click', function () {
+        detailModal.classList.add('hidden');
+        detailModal.classList.remove('flex');
+    });
+});
+</script>
     @endsection

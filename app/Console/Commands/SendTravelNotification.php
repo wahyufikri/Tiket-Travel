@@ -27,23 +27,32 @@ class SendTravelNotification extends Command
         if ($isTestMode) {
             $this->info("🔹 Mode TEST aktif - semua booking akan dikirim WA tanpa cek waktu keberangkatan.");
             $bookings = Booking::with(['schedule', 'order.customer'])->get();
+            $this->info("Booking ketemu (TEST): " . $bookings->count());
         } else {
-            $now = Carbon::now();
+            $now = now();
             $targetTimeStart = $now->copy()->addHours(2)->startOfMinute();
-            $targetTimeEnd = $now->copy()->addHours(2)->endOfMinute();
+            $targetTimeEnd   = $now->copy()->addHours(2)->endOfMinute();
 
             $bookings = Booking::whereHas('schedule', function ($query) use ($targetTimeStart, $targetTimeEnd) {
                 $query->whereRaw(
-                    "STR_TO_DATE(CONCAT(departure_date, ' ', departure_time), '%Y-%m-%d %H:%i:%s') BETWEEN ? AND ?",
+                    "CAST(CONCAT(departure_date, ' ', departure_time) AS DATETIME) BETWEEN ? AND ?",
                     [$targetTimeStart->format('Y-m-d H:i:s'), $targetTimeEnd->format('Y-m-d H:i:s')]
                 );
-            })->with(['schedule', 'order.customer'])->get();
+            })
+                ->with(['schedule', 'order.customer'])
+                ->get();
+
+            $this->info("Sekarang: " . $now->format('Y-m-d H:i:s'));
+            $this->info("Target Start: " . $targetTimeStart->format('Y-m-d H:i:s'));
+            $this->info("Target End: " . $targetTimeEnd->format('Y-m-d H:i:s'));
+            $this->info("Booking ketemu: " . $bookings->count());
         }
 
         if ($bookings->isEmpty()) {
             $this->info("Tidak ada booking yang sesuai.");
             return;
         }
+
 
         foreach ($bookings as $booking) {
             $departureDate = $booking->schedule->departure_date;

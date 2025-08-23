@@ -1,7 +1,7 @@
 @extends('homepage.layouts.main')
 
 @section('content')
-<div class="max-w-7xl mx-auto p-4">
+<div class="max-w-7xl mx-auto p-4" x-data="{ editMode: false }">
     <h1 class="text-2xl font-bold text-red-700 mb-4">Profil Saya</h1>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -12,15 +12,42 @@
                 <i class="fas fa-user"></i>
             </div>
 
-            {{-- Nama & Email --}}
-            <h2 class="mt-4 font-bold text-lg">{{ Auth::guard('customer')->user()->name }}</h2>
-            <p class="text-gray-600">{{ Auth::guard('customer')->user()->email }}</p>
-            <p class="text-gray-600">{{ Auth::guard('customer')->user()->phone }}</p>
-            <p class="text-gray-600">{{ Auth::guard('customer')->user()->address }}</p>
+            {{-- Jika tidak sedang edit --}}
+            <template x-if="!editMode">
+                <div class="text-center mt-4">
+                    <h2 class="font-bold text-lg">{{ Auth::guard('customer')->user()->name }}</h2>
+                    <p class="text-gray-600">{{ Auth::guard('customer')->user()->email }}</p>
+                    <p class="text-gray-600">{{ Auth::guard('customer')->user()->phone }}</p>
+                    <p class="text-gray-600">{{ Auth::guard('customer')->user()->address }}</p>
+                </div>
+            </template>
+
+            {{-- Jika sedang edit --}}
+            <template x-if="editMode">
+                <form action="{{ route('customer.updateProfile') }}" method="POST" class="mt-4 w-full">
+                    @csrf
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Nama</label>
+                        <input type="text" name="name" value="{{ Auth::guard('customer')->user()->name }}" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Email</label>
+                        <input type="email" name="email" value="{{ Auth::guard('customer')->user()->email }}" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">No HP</label>
+                        <input type="text" name="phone" value="{{ Auth::guard('customer')->user()->phone }}" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button type="submit" class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800">Simpan</button>
+                        <button type="button" @click="editMode = false" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Batal</button>
+                    </div>
+                </form>
+            </template>
 
             {{-- Tombol Update & Logout --}}
-            <div class="mt-4 flex space-x-2">
-                <a href="{{ route('customer.editProfile') }}" class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800">Perbarui</a>
+            <div class="mt-4 flex space-x-2" x-show="!editMode">
+                <button @click="editMode = true" class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800">Perbarui</button>
                 <form action="{{ route('customer.logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">Logout</button>
@@ -39,7 +66,7 @@
             </div>
         </div>
 
-        {{-- Kolom Kanan --}}
+        {{-- Kolom Kanan Riwayat --}}
         <div class="md:col-span-2 bg-white shadow rounded p-4">
             <div class="flex items-center justify-between border-b pb-2 mb-4">
                 <h3 class="font-bold text-lg">Riwayat Transaksi</h3>
@@ -50,7 +77,6 @@
                 </select>
             </div>
 
-            {{-- Contoh Data Transaksi --}}
             @forelse($orders as $order)
                 <div class="border rounded p-3 mb-3">
                     <p class="text-red-700 font-bold">{{ $order->route }}</p>

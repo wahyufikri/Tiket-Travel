@@ -1,16 +1,24 @@
 <?php
-namespace App\Console\Commands;
+
+namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
     /**
      * Register the commands for the application.
+     *
+     * Tambahkan command custom di sini.
      */
     protected $commands = [
-        \App\Console\Commands\GenerateDailySchedule::class, // tambahkan command kamu di sini
+        \App\Console\Commands\GenerateDailySchedule::class,
+        \App\Console\Commands\SendTravelNotification::class,
+        \App\Console\Commands\MarkCompletedSchedules::class,
+        \App\Console\Commands\AutoCancelUnpaidOrders::class,
+        \App\Console\Commands\ExpireOrders::class,
     ];
 
     /**
@@ -18,24 +26,37 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Atur agar command jalan tiap hari jam 2 pagi
-        $schedule->command('schedule:generate-daily')->everyMinute();
-        // Untuk testing bisa ganti: ->everyMinute();
+        // Generate jadwal harian setiap jam 2 pagi
+        $schedule->command('schedule:generate-daily')->dailyAt('02:00');
+        $schedule->command('inspire')->everyMinute();
 
-        $schedule->command('schedule:mark-completed')->daily();
+        // Menandai schedule yang sudah selesai setiap 15 menit
+        $schedule->command('schedule:mark-completed')->everyFifteenMinutes();
 
-        $schedule->command('orders:cancel-unpaid')->everyMinutes();
+        // Membatalkan pesanan yang belum dibayar → cek tiap menit
+        $schedule->command('orders:cancel-unpaid')->everyMinute();
 
-        $schedule->command('send:travel-notification')->everyTenMinutes();
+        // Kirim notifikasi travel ke pelanggan → cek tiap menit
+        $schedule->command('send:travel-notification')
+            ->everyMinute()
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+        // Expire pesanan otomatis → cek tiap menit
         $schedule->command('orders:expire')->everyMinute();
-        $schedule->call(function () {
-        \App\Models\Order::where('payment_status', 'belum')
-            ->where('order_status', 'menunggu')
-            ->where('expired_at', '<', now())
-            ->update(['order_status' => 'batal']);
-    })->everyMinute();
+        $schedule->command('inspire')->everyMinute();
 
+
+        // Tambahan logic langsung (tanpa command terpisah)
+        $schedule->call(function () {
+            \App\Models\Order::where('payment_status', 'belum')
+                ->where('order_status', 'menunggu')
+                ->where('expired_at', '<', now())
+                ->update(['order_status' => 'batal']);
+        })->everyMinute();
+
+        $schedule->call(function () {
+        Log::info('🔔 Scheduler jalan di ' . now());
+    })->everyMinute();
     }
 
     /**

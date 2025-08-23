@@ -17,11 +17,17 @@ class GenerateDailySchedule extends Command
     protected $description = 'Generate jadwal otomatis berdasarkan auto_schedules setiap hari';
 
     public function handle()
-    {
-        $tanggal = Carbon::now()->toDateString();
-        $today = now()->dayOfWeek; // 0 = Minggu, 1 = Senin, dst.
+{
+    // Loop untuk hari ini (0) dan besok (1)
+    foreach ([0, 1] as $offset) {
+        $tanggal = Carbon::now()->addDays($offset)->toDateString();
+        $weekday = Carbon::now()->addDays($offset)->dayOfWeek; // 0 = Minggu, 1 = Senin, dst.
 
-        $autoSchedules = AutoSchedule::where('weekday', $today)->where('status', 'aktif')->get();
+        $this->info("Generate jadwal untuk tanggal $tanggal ...");
+
+        $autoSchedules = AutoSchedule::where('weekday', $weekday)
+            ->where('status', 'aktif')
+            ->get();
 
         foreach ($autoSchedules as $auto) {
             $route = $auto->route;
@@ -33,7 +39,7 @@ class GenerateDailySchedule extends Command
                 continue;
             }
 
-            // Cek apakah jadwal sudah dibuat
+            // Cek apakah jadwal sudah ada
             $exists = Schedule::where([
                 ['route_id', $route->id],
                 ['vehicle_id', $vehicle->id],
@@ -48,7 +54,6 @@ class GenerateDailySchedule extends Command
             }
 
             $departureDateTime = Carbon::createFromFormat('Y-m-d H:i:s', "$tanggal {$auto->departure_time}");
-
             $arrivalTime = $departureDateTime->copy()->addMinutes($route->duration_minutes);
 
             $schedule = Schedule::create([
@@ -59,21 +64,21 @@ class GenerateDailySchedule extends Command
                 'departure_time' => $auto->departure_time,
                 'arrival_time' => $arrivalTime->format('H:i'),
                 'available_seats' => $vehicle->capacity,
-                'status' => 'active', // GANTI INI SESUAI ENUM DI MIGRASI
+                'status' => 'active', // sesuai enum di migrasi
             ]);
 
-
-
-            // Perbarui lokasi driver dan kendaraan
+            // Update lokasi driver & kendaraan
             $driver->current_location = $route->origin;
             $driver->save();
 
             $vehicle->current_location = $route->origin;
             $vehicle->save();
 
-            $this->info("Jadwal berhasil dibuat: {$route->origin} ke {$route->destination} jam {$auto->departure_time}");
+            $this->info("Jadwal berhasil dibuat: {$route->origin} → {$route->destination} pada $tanggal jam {$auto->departure_time}");
         }
-
-        $this->info("Selesai generate jadwal otomatis untuk tanggal $tanggal.");
     }
+
+    $this->info("Selesai generate jadwal otomatis untuk hari ini dan besok.");
+}
+
 }

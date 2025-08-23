@@ -36,6 +36,7 @@ class BookingController extends Controller
             'departure_date' => $request->date,
             'departure_segment' => $request->departure_segment,
             'arrival_segment' => $request->arrival_segment,
+            'departure_date' => $request->date,
         ]);
 
         return view('homepage.public.booking', [
@@ -204,104 +205,100 @@ class BookingController extends Controller
         ]
     );
 
-    // 3️⃣ Cari order pending yang belum bayar
-    $order = Order::where('customer_id', $customer->id)
-        ->where('schedule_id', $schedule->id)
+    // 3️⃣ Cek apakah ada order yang belum dibayar (opsi pertama)
+    $unpaidOrder = Order::where('customer_id', $customer->id)
         ->where('payment_status', 'belum')
         ->latest()
         ->first();
 
-    if (!$order) {
-        // Buat order baru
-        $order = Order::create([
-            'customer_id' => $customer->id,
-            'schedule_id' => $schedule->id,
-            'order_code' => 'TX-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
-            'seat_quantity' => $pax,
-            'total_price' => $total,
-            'payment_status' => 'belum',
-            'order_status' => 'menunggu',
-            'expired_at' => now()->addHour(),
-        ]);
-
-        // Simpan data penumpang & booking
-        foreach ($request->selected_seats as $i => $seatNumber) {
-            $seat = Seat::where('vehicle_id', $schedule->vehicle_id)
-                ->where('seat_number', $seatNumber)
-                ->firstOrFail();
-
-            OrderPassenger::create([
-                'order_id' => $order->id,
-                'name' => $request->passenger_names[$i] ?? '-',
-                'seat_number' => $seatNumber,
-            ]);
-
-            Booking::create([
-                'order_id' => $order->id,
-                'schedule_id' => $schedule->id,
-                'seat_id' => $seat->id,
-                'from_stop_id' => $originStop->id,
-                'to_stop_id' => $destinationStop->id,
-                'passenger_name' => $request->passenger_names[$i] ?? '-',
-            ]);
-        }
+    if ($unpaidOrder) {
+        return redirect()->route('public.home')
+            ->with('error', 'Anda masih memiliki pesanan yang belum dibayar dengan kode ' . $unpaidOrder->order_code .
+                   '. Silakan selesaikan pembayaran terlebih dahulu.');
     }
 
-    // 4️⃣ Midtrans Config
-    \Midtrans\Config::$serverKey = config('midtrans.server_key');
-    \Midtrans\Config::$isProduction = config('midtrans.is_production');
-    \Midtrans\Config::$isSanitized = config('midtrans.is_sanitized');
-    \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
+    // 4️⃣ Buat order baru
+    $order = Order::create([
+        'customer_id'   => $customer->id,
+        'schedule_id'   => $schedule->id,
+        'order_code'    => 'TX-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
+        'seat_quantity' => $pax,
+        'total_price'   => $total,
+        'payment_status'=> 'belum',
+        'order_status'  => 'menunggu',
+        'expired_at'    => now()->addHour(),
+    ]);
 
-    // 5️⃣ Gunakan Snap Token lama jika masih valid
-    if ($order->snap_token && $order->created_at->gt(now()->subMinutes(15))) {
-        $snapToken = $order->snap_token;
-    } else {
+    // Simpan data penumpang & booking
+    foreach ($request->selected_seats as $i => $seatNumber) {
+        $seat = Seat::where('vehicle_id', $schedule->vehicle_id)
+            ->where('seat_number', $seatNumber)
+            ->firstOrFail();
+
+        OrderPassenger::create([
+            'order_id'     => $order->id,
+            'name'         => $request->passenger_names[$i] ?? '-',
+            'seat_number'  => $seatNumber,
+        ]);
+
+        Booking::create([
+            'order_id'       => $order->id,
+            'schedule_id'    => $schedule->id,
+            'seat_id'        => $seat->id,
+            'from_stop_id'   => $originStop->id,
+            'to_stop_id'     => $destinationStop->id,
+            'passenger_name' => $request->passenger_names[$i] ?? '-',
+        ]);
+    }
+
+    // 5️⃣ Midtrans Config
+    \Midtrans\Config::$serverKey    = config('midtrans.server_key');
+    \Midtrans\Config::$isProduction = config('midtrans.is_production');
+    \Midtrans\Config::$isSanitized  = config('midtrans.is_sanitized');
+    \Midtrans\Config::$is3ds        = config('midtrans.is_3ds');
+
+    // 6️⃣ Buat Snap Token
+    try {
         $params = [
             'transaction_details' => [
-                // pakai order_code agar konsisten di webhook
-                'order_id' => $order->order_code,
+                'order_id'     => $order->order_code,
                 'gross_amount' => $total,
             ],
             'customer_details' => [
                 'first_name' => $customer->name,
-                'email' => $customer->email,
-                'phone' => $customer->phone,
+                'email'      => $customer->email,
+                'phone'      => $customer->phone,
             ],
         ];
 
-        try {
-            $midtransResponse = \Midtrans\Snap::createTransaction($params);
-            $snapToken = $midtransResponse->token;
+        $midtransResponse = \Midtrans\Snap::createTransaction($params);
+        $snapToken = $midtransResponse->token;
 
-            // Simpan Snap Token & response Midtrans
-            $order->update([
-                'snap_token' => $snapToken,
-                'midtrans_response' => json_encode($midtransResponse)
-            ]);
+        $order->update([
+            'snap_token'       => $snapToken,
+            'midtrans_response'=> json_encode($midtransResponse)
+        ]);
 
-            // Simpan ke tabel log
-            MidtransLog::create([
-                'order_id'   => $order->id,
-                'event_type' => 'snap_create',
-                'payload'    => json_encode($midtransResponse),
-            ]);
+        MidtransLog::create([
+            'order_id'   => $order->id,
+            'event_type' => 'snap_create',
+            'payload'    => json_encode($midtransResponse),
+        ]);
 
-            Log::info('Midtrans Snap Token Generated', [
-                'order_id' => $order->order_code,
-                'snap_token' => $snapToken
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Midtrans Snap Error', ['message' => $e->getMessage()]);
-            return back()->with('error', 'Gagal membuat pembayaran. Coba lagi nanti.');
-        }
+        Log::info('Midtrans Snap Token Generated', [
+            'order_id'   => $order->order_code,
+            'snap_token' => $snapToken
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Midtrans Snap Error', ['message' => $e->getMessage()]);
+        return back()->with('error', 'Gagal membuat pembayaran. Coba lagi nanti.');
     }
 
     $paymentSimulator = !config('midtrans.is_production')
         ? "https://simulator.sandbox.midtrans.com/"
         : null;
 
-    // 6️⃣ Return ke view
+    // 7️⃣ Return ke view
     return view('homepage.public.checkout', compact(
         'schedule',
         'price',
@@ -317,8 +314,9 @@ class BookingController extends Controller
         'selectedSeats',
         'passengerNames',
         'paymentSimulator'
-    ));
+    ))->with('success', true);
 }
+
 
 // BookingController.php
 public function getSnapToken(Order $order)

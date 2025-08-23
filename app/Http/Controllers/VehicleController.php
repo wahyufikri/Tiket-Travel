@@ -161,7 +161,7 @@ public function store(Request $request)
         'seat_configuration.regex' => 'Format konfigurasi kursi tidak valid. Contoh: A=3,B=4,C=3',
     ]);
 
-    // ✅ Validasi apakah jumlah kursi sesuai kapasitas
+    // Validasi jumlah kursi
     $seatConfiguration = $validated['seat_configuration'] ?? null;
     $totalSeats = 0;
 
@@ -181,22 +181,53 @@ public function store(Request $request)
         ]);
     }
 
-    // ✅ Update data jika valid
-    $vehicle = Vehicle::findOrFail($id);
-    $vehicle->vehicle_name = $validated['vehicle_name'];
-    $vehicle->license_plate = $validated['license_plate'];
-    $vehicle->type = $validated['type'];
-    $vehicle->color = $validated['color'];
-    $vehicle->capacity = $validated['capacity'];
-    $vehicle->year = $validated['year'];
-    $vehicle->status = $validated['status'];
-    $vehicle->seat_configuration = $validated['seat_configuration'] ?? null;
-    $vehicle->current_location = $validated['current_location'] ?? $vehicle->current_location;
+    try {
+        DB::transaction(function () use ($validated, $id) {
+            $vehicle = Vehicle::findOrFail($id);
 
-    $vehicle->save();
+            // Update data kendaraan
+            $vehicle->vehicle_name = $validated['vehicle_name'];
+            $vehicle->license_plate = $validated['license_plate'];
+            $vehicle->type = $validated['type'];
+            $vehicle->color = $validated['color'];
+            $vehicle->capacity = $validated['capacity'];
+            $vehicle->year = $validated['year'];
+            $vehicle->status = $validated['status'];
+            $vehicle->seat_configuration = $validated['seat_configuration'] ?? null;
+            $vehicle->current_location = $validated['current_location'] ?? $vehicle->current_location;
+            $vehicle->save();
 
-    return redirect()->route('kendaraan.index')->with('success', 'Kendaraan berhasil diperbarui.');
+            // Hapus semua kursi lama
+            Seat::where('vehicle_id', $vehicle->id)->delete();
+
+            // Generate ulang kursi jika seat_configuration ada
+            if (!empty($validated['seat_configuration'])) {
+                $rows = explode(',', $validated['seat_configuration']);
+                foreach ($rows as $row) {
+                    if (strpos($row, '=') !== false) {
+                        [$rowLabel, $count] = explode('=', $row);
+                        $rowLabel = trim($rowLabel);
+                        $count = (int) trim($count);
+                        for ($i = 1; $i <= $count; $i++) {
+                            Seat::create([
+                                'vehicle_id' => $vehicle->id,
+                                'seat_number' => $rowLabel . $i,
+                                'is_booked' => false,
+                            ]);
+                        }
+                    }
+                }
+            }
+        });
+
+        return redirect()->route('kendaraan.index')->with('success', 'Kendaraan berhasil diperbarui.');
+    } catch (\Exception $e) {
+        return back()->withInput()->withErrors([
+            'database' => 'Terjadi kesalahan saat memperbarui data kendaraan.',
+        ]);
+    }
 }
+
 
 
     public function destroy($id)

@@ -3,6 +3,11 @@
 @section('title', 'Beranda')
 
 @section('content')
+@if(session('error'))
+    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+        {{ session('error') }}
+    </div>
+@endif
     <section class="bg-gradient-to-br from-red-50 to-white py-10">
         <div x-data="{ openDepart: false, openArrival: false, depart: '{{ request('depart') ?? '' }}' }" class="max-w-6xl mx-auto px-4">
             {{-- Form Pencarian --}}

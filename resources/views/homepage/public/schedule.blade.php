@@ -237,6 +237,7 @@
                                 'price' => $customPrice ?? $item->route->price,
                                 'origin' => request('depart'),
                                 'destination' => request('arrival'),
+                                'departure_date' => $item->departure_date,
                                 'departure_segment' => $departureSegment ? $departureSegment->format('H:i') : null,
                                 'arrival_segment' => $arrivalSegment ? $arrivalSegment->format('H:i') : null,
                             ]) }}"

@@ -132,7 +132,7 @@
                                 @endif
                             </a>
                         </th>
-                        <th class="px-4 py-2">Konfigurasi Kursi</th>
+                       
 
 
                         <th class="px-4 py-2">Aksi</th>
@@ -159,9 +159,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2">
-    {{ $vehicle->seat_configuration ?? '-' }}
-</td>
+
 
                             <td class="px-4 py-2 flex space-x-2">
                                 <a href="/kendaraan/{{ $vehicle->id }}/edit"

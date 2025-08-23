@@ -27,6 +27,7 @@ class PublicScheduleController extends Controller
         $orders = Order::with('passengers')
             ->where('customer_id', auth('customer')->id()) // sesuaikan nama kolom foreign key
             ->latest()
+            ->take(3) // ambil hanya 3 pesanan terbaru
             ->get();
     }
 
@@ -37,6 +38,22 @@ class PublicScheduleController extends Controller
         'routeStops', 'origins', 'schedules', 'destinations', 'orders'
     ));
 }
+
+
+public function index(Request $request)
+    {
+        $order = null;
+
+        if ($request->has('order_code')) {
+            $order = Order::with(['customer', 'passengers','schedule'])
+                        ->where('order_code', $request->order_code)
+                        ->first();
+        }
+
+        return view('homepage.public.cek-reservasi', compact('order'));
+    }
+
+
 
 
 

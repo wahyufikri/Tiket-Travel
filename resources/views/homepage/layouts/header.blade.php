@@ -17,6 +17,13 @@
                     Beranda
                     <span class="absolute left-0 -bottom-1 w-0 h-[2px] bg-white transition-all group-hover:w-full"></span>
                 </a></li>
+                
+                <li><a href="/cek-reservasi" class="relative group">
+                    Cek Reservasi
+                    <span class="absolute left-0 -bottom-1 w-0 h-[2px] bg-white transition-all group-hover:w-full"></span>
+                </a></li>
+
+
 
                 <li><a href="/tentang-kami" class="relative group">
                     Tentang Kami
@@ -45,7 +52,7 @@
                        bg-opacity-95 backdrop-blur-lg shadow-xl rounded-b-2xl
                        text-white font-medium space-y-4 p-6 z-50">
                 <li><a href="/" class="block hover:text-yellow-300 transition">Beranda</a></li>
-
+<li><a href="/" class="block hover:text-yellow-300 transition">Cek Reservasi</a></li>
                 <li><a href="/tentang" class="block hover:text-yellow-300 transition">Tentang Kami</a></li>
             </ul>
         </div>

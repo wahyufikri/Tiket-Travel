@@ -83,51 +83,71 @@
 
     <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
         <h2 class="text-2xl font-bold mb-4 text-red-600 flex items-center gap-2">🚍 Pilih Kursi</h2>
+@if(session('error'))
+    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+        {{ session('error') }}
+    </div>
+@endif
 
         <form id="seatForm" method="POST" action="{{ route('checkout') }}" @submit.prevent="handleSubmit">
             @csrf
 
             <div class="space-y-6 mb-6">
-                @foreach ($config as $rowConfig)
-                    @php
-                        [$rowLabel, $count] = explode('=', $rowConfig);
-                        $rowLabel = strtoupper(trim($rowLabel));
-                        $seatsInRow = $groupedSeats[$rowLabel] ?? [];
-                        usort($seatsInRow, fn($a, $b) => intval(substr($a->seat_number, 1)) <=> intval(substr($b->seat_number, 1)));
-                    @endphp
-                    <div>
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="text-lg font-bold text-gray-700">{{ $rowLabel }}</span>
-                            <div class="flex gap-2">
-                                @foreach ($seatsInRow as $seat)
-                                    @php $isBooked = in_array($seat->seat_number, $bookedSeats); @endphp
-                                    <label class="relative cursor-pointer group">
-                                        <input type="checkbox" name="selected_seats[]" class="peer hidden"
-                                               value="{{ $seat->seat_number }}" x-model="selectedSeats"
-                                               @click="
-                                                    if (!selectedSeats.includes('{{ $seat->seat_number }}') && selectedSeats.length >= max) {
-                                                        $event.preventDefault();
-                                                        alert('Maksimal pilih ' + max + ' kursi');
-                                                    }
-                                               "
-                                               @if ($isBooked) disabled @endif
-                                        >
-                                        <div class="w-12 h-12 flex items-center justify-center rounded-lg border-2 text-sm font-medium transition-all duration-200
-                                            @if ($isBooked)
-                                                bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed
-                                            @else
-                                                bg-white text-gray-800 border-gray-300 hover:bg-red-100 hover:border-red-500
-                                            @endif
-                                            peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600 shadow-sm group-hover:shadow-md">
-                                            {{ $seat->seat_number }}
-                                        </div>
-                                    </label>
-                                @endforeach
-                            </div>
+    @php
+        // Formasi persis seperti sketsa
+        $layout = [
+            ['A1', null, null, 'Sopir', null],
+            [null, 'B1', 'B2', 'B3', null],
+            ['C1', null, 'C2', 'C3', null],
+            ['D1',null, 'D2', 'D3', null],
+            ['E1', 'E2', 'E3', 'E4', null],
+        ];
+    @endphp
+
+    @foreach ($layout as $row)
+        <div class="flex gap-2">
+            @foreach ($row as $seatNumber)
+                @if ($seatNumber)
+                    @if ($seatNumber === 'Sopir')
+                        {{-- Kotak khusus Sopir (tidak bisa di-klik) --}}
+                        <div class="w-12 h-12 flex items-center justify-center rounded-lg border-2
+                                    bg-red-500 text-white font-bold shadow-sm">
+                            {{ $seatNumber }}
                         </div>
-                    </div>
-                @endforeach
-            </div>
+                    @else
+                        @php $isBooked = in_array($seatNumber, $bookedSeats); @endphp
+                        <label class="relative cursor-pointer group">
+                            <input type="checkbox" name="selected_seats[]" class="peer hidden"
+                                   value="{{ $seatNumber }}" x-model="selectedSeats"
+                                   @click="
+                                        if (!selectedSeats.includes('{{ $seatNumber }}') && selectedSeats.length >= max) {
+                                            $event.preventDefault();
+                                            alert('Maksimal pilih ' + max + ' kursi');
+                                        }
+                                   "
+                                   @if ($isBooked) disabled @endif
+                            >
+                            <div class="w-12 h-12 flex items-center justify-center rounded-lg border-2 text-sm font-medium transition-all duration-200
+                                @if ($isBooked)
+                                    bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed
+                                @else
+                                    bg-white text-gray-800 border-gray-300 hover:bg-red-100 hover:border-red-500
+                                @endif
+                                peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600 shadow-sm group-hover:shadow-md">
+                                {{ $seatNumber }}
+                            </div>
+                        </label>
+                    @endif
+                @else
+                    {{-- Space kosong buat lorong atau jarak --}}
+                    <div class="w-12 h-12"></div>
+                @endif
+            @endforeach
+        </div>
+    @endforeach
+</div>
+
+
 
             <p class="mt-2 text-xs text-gray-500 italic">
                 Keterangan: A adalah barisan kursi paling depan, B barisan kedua, dst.

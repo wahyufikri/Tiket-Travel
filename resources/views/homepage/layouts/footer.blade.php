@@ -17,7 +17,7 @@
         <div>
             <h3 class="font-semibold text-lg mb-4 border-b border-gray-700 pb-2">Kontak</h3>
             <ul class="space-y-2 text-gray-300">
-                <li><i class="fab fa-whatsapp text-green-500"></i> WhatsApp: <a href="https://wa.me/6281713555003" class="hover:underline">+62 817-1355-5003</a></li>
+                <li><i class="fab fa-whatsapp text-green-500"></i> Contact Person: <a href="https://wa.me/6281378228922" class="hover:underline">+62 813-7822-8922</a></li>
                 <li><i class="fas fa-envelope text-red-400"></i> Email: <a href="mailto:awr@gmail.com" class="hover:underline">awr@gmail.com</a></li>
                 <li><i class="fas fa-map-marker-alt text-blue-400"></i> Alamat: Bukittinggi, Indonesia</li>
             </ul>

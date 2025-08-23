@@ -95,6 +95,10 @@
                 </p>
             </div>
         @endif
+{{-- Catatan jika ada kendala --}}
+<div class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded">
+    <strong>NB:</strong> Jika Anda mengalami kendala saat proses pembayaran, silakan hubungi <strong>Contact Person</strong> kami pada jam kerja dari jam <strong>08.00 - 21.00</strong>.
+</div>
 
     </div>
 </div>

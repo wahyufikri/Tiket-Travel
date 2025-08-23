@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PDF;
+use Illuminate\Support\Facades\Auth;
+
 
 class OrderController extends Controller
 {
@@ -25,7 +27,7 @@ class OrderController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'like', '%' . $search . '%');
+            $query->where('order_code', 'like', '%' . $search . '%');
         }
 
         $allowedSortBy = ['customer','schedule', 'order_code', 'seat_quantity', 'total_price', 'payment_status','order_status'];
@@ -124,6 +126,8 @@ public function getSeats(Schedule $schedule)
             'payment_status' => $validated['payment_status'],
             'order_status'   => $validated['order_status'],
             'order_code'     => $orderCode,
+            'expired_at'     => now()->addHour(),
+            'verified_by'    => Auth::id(), // ⬅️ Tambahan untuk admin manual
         ]);
 
         foreach ($validated['selected_seats'] as $i => $seatNumber) {
@@ -166,30 +170,30 @@ public function getSeats(Schedule $schedule)
 
 
 
-    public function show(Order $order)
-{
+//     public function show(Order $order)
+// {
 
-    $trip = $order->schedule;
-    $passengers = $order->passengers;
-    $origin = session('origin');
-    $destination = session('destination'); // asumsi relasi passengers() di model Order
+//     $trip = $order->schedule;
+//     $passengers = $order->passengers;
+//     $origin = session('origin');
+//     $destination = session('destination'); // asumsi relasi passengers() di model Order
 
 
 
-    return view('homepage.public.show', [
-        'order' => $order,
-        'trip' => $trip,
-        'selectedSeats' => $passengers->pluck('seat_number'),
-        'passengerNames' => $passengers->pluck('name'),
-        'pax' => $order->seat_quantity,
-        'origin' => $origin,
-        'destination' => $destination,
-        'departure_segment' => session('departure_segment'),
-        'arrival_segment' => session('arrival_segment'),
-        'phone' => session('customer.customer_phone'),
-        'email' => session('customer.customer_email'),
-    ]);
-}
+//     return view('homepage.public.show', [
+//         'order' => $order,
+//         'trip' => $trip,
+//         'selectedSeats' => $passengers->pluck('seat_number'),
+//         'passengerNames' => $passengers->pluck('name'),
+//         'pax' => $order->seat_quantity,
+//         'origin' => $origin,
+//         'destination' => $destination,
+//         'departure_segment' => session('departure_segment'),
+//         'arrival_segment' => session('arrival_segment'),
+//         'phone' => session('customer.customer_phone'),
+//         'email' => session('customer.customer_email'),
+//     ]);
+// }
 
 
 public function edit($id)
@@ -288,9 +292,10 @@ public function destroy($id)
     $destination = session('destination');
     $departure_segment = session('departure_segment');
     $arrival_segment = session('arrival_segment');
+    $departure_date = session('departure_date');
     $phone = session('customer.customer_phone');
     $email = session('customer.customer_email');
-    return view('homepage.public.show_ticket', compact('order', 'departure_segment', 'arrival_segment', 'phone', 'email','origin', 'destination'));
+    return view('homepage.public.show_ticket', compact('order', 'departure_segment', 'arrival_segment', 'phone', 'email','origin', 'destination','departure_date'));
 }
 
 public function downloadTicket(Order $order)
@@ -301,12 +306,36 @@ public function downloadTicket(Order $order)
     $origin = session('origin');
     $destination = session('destination');
     $departure_segment = session('departure_segment');
+    $departure_date = session('departure_date');
     $arrival_segment = session('arrival_segment');
-    $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order','departure_segment', 'arrival_segment', 'origin', 'destination'))
+    $pdf = FacadePdf::loadView('homepage.public.ticket', compact('order','departure_segment', 'arrival_segment', 'origin', 'destination','departure_date'))
         ->setPaper('A4', 'portrait');
 
     return $pdf->download('tiket_' . $order->id . '.pdf');
 }
+
+
+public function cetak(Request $request)
+{
+    $filter = $request->filter;
+    $orders = collect();
+
+    if ($filter === 'harian') {
+        $orders = Order::whereDate('created_at', $request->tanggal)->get();
+    } elseif ($filter === 'bulanan') {
+        $orders = Order::whereYear('created_at', date('Y', strtotime($request->bulan)))
+                       ->whereMonth('created_at', date('m', strtotime($request->bulan)))
+                       ->get();
+    } elseif ($filter === 'tahunan') {
+        $orders = Order::whereYear('created_at', $request->tahun)->get();
+    }
+
+    $pdf = FacadePdf::loadView('dashboard.orders.cetak', compact('orders', 'filter'))
+              ->setPaper('A4', 'portrait');
+
+    return $pdf->download('laporan-pemesanan.pdf');
+}
+
 
 
 

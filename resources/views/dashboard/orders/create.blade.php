@@ -38,22 +38,40 @@
             <select name="schedule_id" id="schedule_id" class="w-full border rounded p-2" x-model="scheduleId" @change="fetchSeats" required>
                 <option value="">-- Pilih Jadwal --</option>
                 @foreach($schedules as $schedule)
-                    @php
-                        $routeStops = $schedule->route->stops->sortBy('stop_order');
-                        $originStop = $routeStops->first();
-                        $destinationStop = $routeStops->last();
-                        $origin = $originStop->stop_name ?? '-';
-                        $destination = $destinationStop->stop_name ?? '-';
-                        $price = $stopPrices->first(function($sp) use ($schedule, $originStop, $destinationStop) {
-                            return $sp->route_id == $schedule->route_id
-                                && $sp->from_stop_id == $originStop->id
-                                && $sp->to_stop_id == $destinationStop->id;
-                        })->price ?? 0;
-                    @endphp
-                    <option value="{{ $schedule->id }}" data-price="{{ $price }}">
-                        {{ $origin }} → {{ $destination }} - {{ $schedule->departure_time }}
-                    </option>
-                @endforeach
+    @php
+        $routeStops = $schedule->route->stops->sortBy('stop_order')->values();
+        $originStop = $routeStops->first();
+        $destinationStop = $routeStops->last();
+        $fullPrice = $stopPrices->first(function($sp) use ($schedule, $originStop, $destinationStop) {
+            return $sp->route_id == $schedule->route_id
+                && $sp->from_stop_id == $originStop->id
+                && $sp->to_stop_id == $destinationStop->id;
+        })->price ?? 0;
+    @endphp
+
+    {{-- 1. Full route --}}
+    <option value="{{ $schedule->id }}-{{ $originStop->id }}-{{ $destinationStop->id }}" data-price="{{ $fullPrice }}">
+        {{ $originStop->stop_name }} → {{ $destinationStop->stop_name }} - {{ $schedule->departure_time }}
+    </option>
+
+    {{-- 2. Semua segmen antar stop --}}
+    @for($i = 0; $i < $routeStops->count() - 1; $i++)
+        @php
+            $segOrigin = $routeStops[$i];
+            $segDest = $routeStops[$i + 1];
+            $segPrice = $stopPrices->first(function($sp) use ($schedule, $segOrigin, $segDest) {
+                return $sp->route_id == $schedule->route_id
+                    && $sp->from_stop_id == $segOrigin->id
+                    && $sp->to_stop_id == $segDest->id;
+            })->price ?? 0;
+        @endphp
+        <option value="{{ $schedule->id }}-{{ $segOrigin->id }}-{{ $segDest->id }}" data-price="{{ $segPrice }}">
+            {{ $segOrigin->stop_name }} → {{ $segDest->stop_name }} - {{ $schedule->departure_time }}
+        </option>
+    @endfor
+@endforeach
+
+
             </select>
         </div>
 
@@ -72,7 +90,7 @@
                         class="flex items-center justify-center w-12 h-12 rounded-md border text-sm font-semibold cursor-pointer"
                         :class="seat.is_booked
                             ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                            : (selectedSeats.includes(seat.seat_number) ? 'bg-green-500 text-white' : 'bg-gray-200 hover:bg-blue-200')"
+                            : (selectedSeats.includes(seat.seat_number) ? 'bg-red-500 text-white' : 'bg-gray-200 hover:bg-blue-200')"
                         @click="toggleSeat(seat)"
                         x-text="seat.seat_number">
                     </div>

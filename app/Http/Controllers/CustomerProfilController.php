@@ -21,30 +21,30 @@ class CustomerProfilController extends Controller
         return view('homepage.public.profil', compact('customer', 'orders'));
     }
 
-    public function edit()
-    {
-        $customer = Auth::guard('customer')->user();
-        return view('customer.edit-profile', compact('customer'));
-    }
+    public function editProfile()
+{
+    $customer = Auth::guard('customer')->user();
+    return view('homepage.profile.edit', compact('customer'));
+}
 
-    public function update(Request $request)
+public function updateProfile(Request $request)
     {
-        $customer = Auth::guard('customer')->user();
-
         $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string|max:255',
+            'name'    => 'required|string|max:255',
+            'email'   => 'required|email',
+            'phone'   => 'required|string|max:20',
         ]);
 
+        $customer = Auth::guard('customer')->user();
         $customer->update([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address,
+            'name'    => $request->name,
+            'email'   => $request->email,
+            'phone'   => $request->phone,
         ]);
 
-        return redirect()->route('customer.profile')->with('success', 'Profil berhasil diperbarui.');
+        return redirect()->route('customer.profile')->with('success', 'Profil berhasil diperbarui!');
     }
+
 
     public function logout()
     {

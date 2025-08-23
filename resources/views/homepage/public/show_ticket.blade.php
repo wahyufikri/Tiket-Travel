@@ -39,7 +39,9 @@
             <div>
                 <h3 class="text-lg font-semibold text-gray-800 border-b pb-1 mb-2">Rute & Jadwal</h3>
                 <p><span class="font-medium">Rute:</span> {{ $origin }} → {{ $destination }}</p>
-                <p><span class="font-medium">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($departure_segment)->format('d F Y, H:i') }}</p>
+                <p><span class="font-medium">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($departure_date)->format('d F Y') }}
+,  {{ \Carbon\Carbon::parse($departure_segment)->format('H:i') }}
+</p>
             </div>
 
             {{-- Harga & Pembayaran --}}

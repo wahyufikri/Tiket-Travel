@@ -19,6 +19,7 @@ class Order extends Model
         'order_status',
         'midtrans_response',
         'expired_at',
+        'verified_by',
     ];
     protected $casts = [
         'expired_at' => 'datetime',
@@ -62,5 +63,13 @@ class Order extends Model
     return $this->hasOne(Payment::class);
 }
 
-}
+public function booking()
+{
+    return $this->hasOne(Booking::class);
 
+}
+public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+}

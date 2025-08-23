@@ -42,8 +42,8 @@ class MidtransWebhookController extends Controller
 
         // Pemetaan status
         $statusMap = [
-            'settlement' => ['payment_status' => 'lunas', 'order_status' => 'proses'],
-            'capture'    => ['payment_status' => 'lunas', 'order_status' => 'proses'],
+            'settlement' => ['payment_status' => 'lunas', 'order_status' => 'selesai'],
+            'capture'    => ['payment_status' => 'lunas', 'order_status' => 'selesai'],
             'pending'    => ['payment_status' => 'belum', 'order_status' => 'menunggu'],
             'deny'       => ['payment_status' => 'gagal', 'order_status' => 'batal'],
             'cancel'     => ['payment_status' => 'gagal', 'order_status' => 'batal'],

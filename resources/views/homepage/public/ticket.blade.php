@@ -64,7 +64,8 @@
         <div class="section-title">Rute & Jadwal</div>
         <div class="info">
             <p><strong>Rute:</strong> {{ $origin }} → {{ $destination }}</p>
-            <p><strong>Tanggal & Waktu:</strong> {{ \Carbon\Carbon::parse($departure_segment)->format('d F Y, H:i') }}</p>
+            <p><strong>Tanggal & Waktu:</strong>{{ \Carbon\Carbon::parse($departure_date)->format('d F Y') }}
+, {{ \Carbon\Carbon::parse($departure_segment)->format('H:i') }}</p>
         </div>
 
         {{-- Pembayaran --}}
