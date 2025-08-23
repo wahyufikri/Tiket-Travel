@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\MarkCompletedSchedules::class,
         \App\Console\Commands\AutoCancelUnpaidOrders::class,
         \App\Console\Commands\ExpireOrders::class,
+        \App\Console\Commands\TestScheduleCommand::class,
     ];
 
     /**
@@ -57,7 +58,18 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
         Log::info('🔔 Scheduler jalan di ' . now());
     })->everyMinute();
+
+    $schedule->call(function () {
+        info('Scheduler jalan');
+    })->everyMinute();
+    $schedule->command('test:schedule')->everyMinute();
+
+        // Contoh closure scheduler
+        $schedule->call(function () {
+            info('Closure scheduler jalan setiap menit');
+        })->everyMinute();
     }
+
 
     /**
      * Register the commands for the application.
