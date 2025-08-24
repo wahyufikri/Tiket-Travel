@@ -318,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
     filterSelect.addEventListener('change', updateInputs);
     updateInputs(); // Set default saat load
 });
-
 document.addEventListener('DOMContentLoaded', function () {
     const detailModal = document.getElementById('detailModal');
     const modalContent = document.getElementById('modalContent');
@@ -328,7 +327,15 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function () {
             let order = JSON.parse(this.getAttribute('data-order'));
 
-            // isi detail ke modal
+            // Format tanggal biar lebih rapi (dd-mm-yyyy)
+            let departureDate = new Date(order.schedule.departure_date);
+            let formattedDate = departureDate.toLocaleDateString('id-ID');
+
+            // Format jam (ambil HH:MM dari "HH:MM:SS")
+            let departureTime = new Date(order.schedule.departure_time);
+let formattedTime = departureTime.getHours().toString().padStart(2, '0') + ':' +
+                    departureTime.getMinutes().toString().padStart(2, '0');
+
             modalContent.innerHTML = `
                 <p><strong>Kode Order:</strong> ${order.order_code}</p>
                 <p><strong>Nama Pemesan:</strong> ${order.customer.name}</p>
@@ -337,7 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p><strong>Total Harga:</strong> Rp${order.total_price.toLocaleString()}</p>
                 <p><strong>Status Order:</strong> ${order.order_status}</p>
                 <p><strong>Status Bayar:</strong> ${order.payment_status}</p>
-                <p><strong>Status Bayar:</strong> ${order.payment_status}</p>
+                <p><strong>Tanggal:</strong> ${formattedDate}</p>
+                <p><strong>Jam:</strong> ${formattedTime}</p>
             `;
 
             detailModal.classList.remove('hidden');
@@ -350,5 +358,6 @@ document.addEventListener('DOMContentLoaded', function () {
         detailModal.classList.remove('flex');
     });
 });
+
 </script>
     @endsection

@@ -52,9 +52,9 @@ Route::get('/test-snap', [PaymentController::class, 'testSnap']);
 
 
 
-Route::resource('/manajemen-admin', ManajemenAdminController::class);
+Route::resource('/manajemen-admin', ManajemenAdminController::class)->middleware('auth');
 
-Route::resource('/manajemen-role', RoleController::class);
+Route::resource('/manajemen-role', RoleController::class)->middleware('auth');
 
 Route::resource('/sopir', DriverController::class)->middleware('auth');
 
@@ -64,9 +64,9 @@ Route::resource('/rute', RouteController::class)->middleware('auth');
 
 Route::resource('/jadwal', ScheduleController::class)->middleware('auth');
 
-Route::resource('/auto_schedule', AutoScheduleController::class);
+Route::resource('/auto_schedule', AutoScheduleController::class)->middleware('auth');
 
-Route::resource('/pemesanan', OrderController::class);
+Route::resource('/pemesanan', OrderController::class)->middleware('auth');
 
 Route::get('/pemesanan/create/{route_id}', [OrderController::class, 'create']);
 

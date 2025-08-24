@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('inspire')->everyMinute();
 
         // Menandai schedule yang sudah selesai setiap 15 menit
-        $schedule->command('schedule:mark-completed')->everyFifteenMinutes();
+        $schedule->command('schedule:mark-completed')->everyMinute();
 
         // Membatalkan pesanan yang belum dibayar → cek tiap menit
         $schedule->command('orders:cancel-unpaid')->everyMinute();

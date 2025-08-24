@@ -39,6 +39,11 @@ class Schedule extends Model
     {
         return $this->hasMany(Seat::class);
     }
-    
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
 
 }

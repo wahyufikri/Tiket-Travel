@@ -10,6 +10,7 @@ use App\Models\Schedule;
 use App\Models\Seat;
 use App\Models\Stop;
 use App\Models\StopPrice;
+use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Http\Request;
@@ -84,7 +85,7 @@ public function getSeats(Schedule $schedule)
 
 
 
-    public function store(Request $request)
+   public function store(Request $request)
 {
     $validated = $request->validate([
         'customer_id'      => 'required|exists:customers,id',
@@ -159,6 +160,20 @@ public function getSeats(Schedule $schedule)
             ]);
         }
 
+        // Tambahkan transaksi jika status pembayaran lunas
+        if ($validated['payment_status'] === 'lunas') {
+            Transaction::create([
+                'type'             => 'income',
+                'order_id'         => $order->id,
+                'title'            => 'Pembayaran Order #' . $order->order_code,
+                'amount'           => $totalPrice,
+                'category_id'      => 1, // <-- Ubah jika ada ID kategori spesifik
+                'transaction_date' => now(),
+                'payment_method'   => 'manual', // atau 'online', sesuai kebutuhan
+                'description'      => 'Pembayaran otomatis dari pemesanan dengan kode ' . $order->order_code,
+            ]);
+        }
+
         DB::commit();
         return redirect()->route('pemesanan.index')->with('success', 'Pemesanan dan booking berhasil dibuat.');
     } catch (\Exception $e) {
@@ -166,6 +181,7 @@ public function getSeats(Schedule $schedule)
         return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
     }
 }
+
 
 
 
@@ -232,16 +248,36 @@ public function update(Request $request, $id)
         'order_status'   => 'required|in:menunggu,proses,selesai,batal',
     ]);
 
-    $order = Order::findOrFail($id);
+    $order = Order::with('schedule.route')->findOrFail($id);
+    $previousStatus = $order->payment_status;
 
     $order->payment_status = $request->payment_status;
     $order->order_status   = $request->order_status;
-
     $order->save();
+
+    // Cek jika status payment diubah dari bukan 'lunas' menjadi 'lunas'
+    if ($previousStatus !== 'lunas' && $request->payment_status === 'lunas') {
+        // Cek apakah transaksi untuk order ini sudah ada
+        $existingTransaction = Transaction::where('order_id', $order->id)->first();
+
+        if (!$existingTransaction) {
+            Transaction::create([
+                'type'             => 'income',
+                'order_id'         => $order->id,
+                'title'            => 'Pembayaran Order #' . $order->order_code,
+                'amount'           => $order->total_price,
+                'category_id'      => 1, // Sesuaikan dengan kategori pemasukan
+                'transaction_date' => now(),
+                'payment_method'   => 'manual', // Atau online jika kamu punya field itu
+                'description'      => 'Pembayaran otomatis dari pemesanan dengan kode ' . $order->order_code,
+            ]);
+        }
+    }
 
     return redirect()->route('pemesanan.index')
         ->with('success', 'Status pembayaran dan status pemesanan berhasil diperbarui.');
 }
+
 
 
 

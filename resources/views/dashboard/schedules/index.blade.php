@@ -160,7 +160,7 @@
                             <td class="px-4 py-2">{{ $schedule->vehicle ? $schedule->vehicle->vehicle_name : '-' }}</td>
                             <td class="px-4 py-2">{{ $schedule->driver ? $schedule->driver->name : '-' }}</td>
                             <td class="px-4 py-2">{{ $schedule->departure_date }}</td>
-                            <td class="px-4 py-2">{{ $schedule->departure_time }}</td>
+                            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') }}</td>
                             <td class="px-4 py-2">{{ $schedule->available_seats }}</td>
                             <td class="px-4 py-2">
                                 @if ($schedule->status == 'active')

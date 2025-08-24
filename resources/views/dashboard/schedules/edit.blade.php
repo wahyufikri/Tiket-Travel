@@ -122,24 +122,33 @@
                 <input type="number" name="available_seats" id="available_seats" min="1" class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-red-500" value="{{ old('available_seats', $schedules->available_seats) }}" required>
             </div>
 
-            <!-- Status -->
-            <div>
-                <label class="block font-semibold mb-1">Status <span class="text-red-500">*</span></label>
-                <div class="flex space-x-6">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="active" class="form-radio text-red-500" {{ old('status', $schedules->status) == 'active' ? 'checked' : '' }}>
-                        <span class="ml-2">Aktif</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="completed" class="form-radio text-red-500" {{ old('status', $schedules->status) == 'completed' ? 'checked' : '' }}>
-                        <span class="ml-2">Selesai</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="cancelled" class="form-radio text-red-500" {{ old('status', $schedules->status) == 'cancelled' ? 'checked' : '' }}>
-                        <span class="ml-2">Dibatalkan</span>
-                    </label>
-                </div>
-            </div>
+           <!-- Status -->
+<div>
+    <label class="block font-semibold mb-1">Status <span class="text-red-500">*</span></label>
+    <div class="flex space-x-6">
+        <label class="inline-flex items-center">
+            <input type="radio" name="status" value="active"
+                class="form-radio text-red-500"
+                {{ old('status', $schedules->status) == 'active' ? 'checked' : '' }}>
+            <span class="ml-2">Aktif</span>
+        </label>
+
+        <label class="inline-flex items-center">
+            <input type="radio" name="status" value="completed"
+                class="form-radio text-red-500"
+                {{ old('status', $schedules->status) == 'completed' ? 'checked' : '' }}>
+            <span class="ml-2">Selesai</span>
+        </label>
+
+        <label class="inline-flex items-center">
+            <input type="radio" name="status" value="cancelled"
+                class="form-radio text-red-500"
+                {{ old('status', $schedules->status) == 'cancelled' ? 'checked' : '' }}
+                onclick="return confirmCancelStatus(this)">
+            <span class="ml-2">Dibatalkan</span>
+        </label>
+    </div>
+</div>
 
             <!-- Tombol -->
             <div class="flex justify-end space-x-2 mt-6">
@@ -148,4 +157,36 @@
             </div>
         </form>
     </div>
+
+   @push('scripts')
+<script>
+    function confirmCancelStatus(radio) {
+        Swal.fire({
+            title: 'Batalkan Jadwal?',
+            text: "Jika dibatalkan, notifikasi WhatsApp akan dikirim ke customer!",
+            icon: 'warning',
+            background: '#1f2937', // warna gelap
+            color: '#fff',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626', // merah
+            cancelButtonColor: '#6b7280', // abu
+            confirmButtonText: '<i class="fas fa-ban"></i> Ya, Batalkan',
+            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            customClass: {
+                popup: 'rounded-xl shadow-lg animate__animated animate__shakeX',
+                confirmButton: 'px-4 py-2 rounded-lg font-semibold',
+                cancelButton: 'px-4 py-2 rounded-lg font-semibold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                radio.checked = true; // tetap pilih cancelled
+            } else {
+                radio.checked = false; // batal, jangan ubah pilihan
+            }
+        });
+
+        return false; // cegah default behavior
+    }
+</script>
+@endpush
 @endsection
